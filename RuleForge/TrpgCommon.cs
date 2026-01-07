@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
-    class TrpgPlayer
+    class TrpgCommon
     {
-
     }
 }
