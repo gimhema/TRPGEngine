@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AsyncTcpServer;
+namespace RuleForge;
 
 public static class Protocol
 {

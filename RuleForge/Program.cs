@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AsyncTcpServer;
+namespace RuleForge;
 
 internal static class Program
 {
