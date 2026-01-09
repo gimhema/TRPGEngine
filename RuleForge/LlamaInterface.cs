@@ -50,8 +50,6 @@ namespace RuleForge
             InferenceParams = new InferenceParams
             {
                 MaxTokens = 256,
-                // "User:"는 Gemma 계열 템플릿과 안 맞을 수 있어요.
-                // 일단 제거하거나, 모델에 맞는 stop을 찾는 쪽이 안전합니다.
                 AntiPrompts = new List<string>(),
                 SamplingPipeline = new DefaultSamplingPipeline(),
             };
