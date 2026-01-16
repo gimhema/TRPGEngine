@@ -6,12 +6,24 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
+    class TrpgGameSituation
+    {
+        public string SituationName { get; set; }
+        public string SituationDescription { get; set; }
+
+        public List<TrpgGameAction> PossibleActions { get; set; }
+
+        public TrpgGameSituation()
+        {
+            SituationName = string.Empty;
+            SituationDescription = string.Empty;
+            PossibleActions = new List<TrpgGameAction>();
+        }
+    }
     class TrpgGameAction
     {
         public string ActionName { get; set; }
         public string ActionDescription { get; set; }
-
-        public string ActionStatusDescription { get; set; }
 
         public TrpgActor ActionTargetActor { get; set; }
 
@@ -21,7 +33,6 @@ namespace RuleForge
         {
             ActionName = string.Empty;
             ActionDescription = string.Empty;
-            ActionStatusDescription = string.Empty;
             ActionTargetActor = null;
             ActionCost = null;
         }
