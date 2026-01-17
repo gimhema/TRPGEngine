@@ -89,8 +89,17 @@ internal static class Program
         }
     }
 
+    public static void GameStartPreprocess()
+    {
+        // Load LLM Models . . .
+
+        // Setting TRPG Rule . . .
+    }
+
     public static async Task Main(string[] args)
     {
+
+        GameStartPreprocess();
 
         Console.WriteLine("Select Game Mode: 1) Single Player  2) Multi Player Host  3) Multi Player Client");
         var input = Console.ReadLine();
