@@ -55,7 +55,29 @@ namespace RuleForge
         {
             Type = type;
         }
-        
+
+        public void SelectActivity()
+        {
+            Console.WriteLine($"Activity selected: {Type}");
+            Do();
+        }
+
+        public void Do()
+        {
+            switch(Type)
+            {
+                case ActivityType.Combat:
+                    Console.WriteLine("Engaging in combat...");
+                    break;
+                case ActivityType.Exploration:
+                    Console.WriteLine("Exploring the area...");
+                    break;
+                case ActivityType.Social:
+                    Console.WriteLine("Interacting with NPCs...");
+                    break;
+            }
+        }
+
     }
         
 
