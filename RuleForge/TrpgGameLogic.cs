@@ -20,19 +20,41 @@ namespace RuleForge
     }
 
     // Quest
-        // Main Quest
-        // Sub Quest
     class Quest
     {
+        public enum QuestType
+        {
+            Main,
+            Sub
+        }
         
+        public string Title { get; set; }
+        public QuestType Type { get; set; }
+
+        public Quest(string title, QuestType type)
+        {
+            Title = title;
+            Type = type;
+        }
+
     }
 
     // Activity
-        // Combat Acitivity
-        // Exploration Activity
-        // Social Activity 
     class Activity
     {
+        public enum ActivityType
+        {
+            Combat,
+            Exploration,
+            Social
+        }
+
+        public ActivityType Type { get; set; }
+
+        public Activity(ActivityType type)
+        {
+            Type = type;
+        }
         
     }
         
