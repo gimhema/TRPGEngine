@@ -8,13 +8,28 @@ namespace RuleForge
 {
     class TrpgGameLogic
     {
-        public string Name { get; set; }
-
-        public TrpgGameLogic(string name)
+        private static TrpgGameLogic _instance;
+        public static TrpgGameLogic Instance
         {
-            Name = name;
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new TrpgGameLogic();
+                }
+                return _instance;
+            }
         }
 
+        public TrpgGameLogic()
+        {
+
+        }
+
+        public void StartGame()
+        {
+            Console.WriteLine("TRPG Game Started!");
+        }
         
 
     }
