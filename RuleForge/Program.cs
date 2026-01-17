@@ -25,7 +25,7 @@ internal static class Program
 
     public static async void StartGameSingle(string[] args)
     {
-        // Implementation for starting a single-player game
+        TrpgGameLogic.Instance.StartGame();
     }
 
     public static async void StartGameMultiHost(string[] args)
@@ -67,6 +67,8 @@ internal static class Program
         Console.WriteLine($"Listening on {ip}:{port}  (Ctrl+C to stop)");
         await server.RunAsync(cts.Token);
         Console.WriteLine("Server stopped.");
+
+        TrpgGameLogic.Instance.StartGame();
     }
 
     public static void GameStart(string[] args)
