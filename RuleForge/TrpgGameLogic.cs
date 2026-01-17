@@ -6,6 +6,38 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
+    // Chapter
+    class Chapter
+    {
+        public string Title { get; set; }
+        public List<Quest> Scenes { get; set; }
+
+        public Chapter(string title)
+        {
+            Title = title;
+            Scenes = new List<Quest>();
+        }
+    }
+
+    // Quest
+        // Main Quest
+        // Sub Quest
+    class Quest
+    {
+        
+    }
+
+    // Activity
+        // Combat Acitivity
+        // Exploration Activity
+        // Social Activity 
+    class Activity
+    {
+        
+    }
+        
+
+
     class TrpgGameLogic
     {
         private static TrpgGameLogic _instance;
