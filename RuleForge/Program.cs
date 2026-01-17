@@ -16,8 +16,19 @@ internal static class Program
         MULTI_CLIENT = 3
     }
 
+    public static GameMode CurrentGameMode = GameMode.DEFAULT;
 
-    public static async Task Main(string[] args)
+    public static void SelectGameMode(GameMode mode)
+    {
+        CurrentGameMode = mode;
+    }
+
+    public static void StartGameSingle(string[] args)
+    {
+        // Implementation for starting a single-player game
+    }
+
+    public static void StartGameMultiHost(string[] args)
     {
         var ip = IPAddress.Any;
         var port = 7777;
@@ -56,5 +67,10 @@ internal static class Program
         Console.WriteLine($"Listening on {ip}:{port}  (Ctrl+C to stop)");
         await server.RunAsync(cts.Token);
         Console.WriteLine("Server stopped.");
+    }
+
+    public static async Task Main(string[] args)
+    {
+
     }
 }
