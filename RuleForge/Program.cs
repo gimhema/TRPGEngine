@@ -23,12 +23,12 @@ internal static class Program
         CurrentGameMode = mode;
     }
 
-    public static void StartGameSingle(string[] args)
+    public static async void StartGameSingle(string[] args)
     {
         // Implementation for starting a single-player game
     }
 
-    public static void StartGameMultiHost(string[] args)
+    public static async void StartGameMultiHost(string[] args)
     {
         var ip = IPAddress.Any;
         var port = 7777;
