@@ -8,6 +8,15 @@ namespace RuleForge;
 
 internal static class Program
 {
+    public enum GameMode
+    {
+        DEFAULT = 0,
+        SINGLE = 1,
+        MULTI_HOST = 2,
+        MULTI_CLIENT = 3
+    }
+
+
     public static async Task Main(string[] args)
     {
         var ip = IPAddress.Any;
