@@ -69,8 +69,52 @@ internal static class Program
         Console.WriteLine("Server stopped.");
     }
 
+    public static void GameStart(string[] args)
+    {
+        switch(CurrentGameMode)
+        {
+            case GameMode.SINGLE:
+                // Start single-player game logic
+                StartGameSingle(args);
+                break;
+            case GameMode.MULTI_HOST:
+                // Start multi-player host game logic
+                StartGameMultiHost(args);
+                break;
+            case GameMode.MULTI_CLIENT:
+                // Start multi-player client game logic
+                break;
+            default:
+                throw new InvalidOperationException("Game mode not selected.");
+        }
+    }
+
     public static async Task Main(string[] args)
     {
+
+        Console.WriteLine("Select Game Mode: 1) Single Player  2) Multi Player Host  3) Multi Player Client");
+        var input = Console.ReadLine();
+        switch (input)
+        {
+            case "1":
+                SelectGameMode(GameMode.SINGLE);
+                StartGameSingle(args);
+                break;
+            case "2":
+                SelectGameMode(GameMode.MULTI_HOST);
+                StartGameMultiHost(args);
+                break;
+            case "3":
+                SelectGameMode(GameMode.MULTI_CLIENT);
+                // StartGameMultiClient(args); // Implement this method as needed
+                break;
+            default:
+                Console.WriteLine("Invalid selection. Exiting.");
+                break;
+        }
+
+        GameStart(args);
+
 
     }
 }
