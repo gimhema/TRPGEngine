@@ -10,12 +10,36 @@ namespace RuleForge
     class Chapter
     {
         public string Title { get; set; }
-        public List<Quest> Scenes { get; set; }
+        public List<Quest> Quests { get; set; }
+
+        public int currentQuestIndex = 0;
 
         public Chapter(string title)
         {
             Title = title;
-            Scenes = new List<Quest>();
+            Quests = new List<Quest>();
+        }
+
+        public void Start()
+        {
+            Console.WriteLine($"Chapter started: {Title}");
+            foreach (var quest in Quests)
+            {
+                Console.WriteLine($"Starting quest: {quest.Title} ({quest.Type})");
+            }
+        }
+
+        public void SelectQuest(int index)
+        {
+            if (index >= 0 && index < Quests.Count)
+            {
+                currentQuestIndex = index;
+                Console.WriteLine($"Quest selected: {Quests[index].Title}");
+            }
+            else
+            {
+                Console.WriteLine("Invalid quest index.");
+            }
         }
     }
 
@@ -29,12 +53,20 @@ namespace RuleForge
         }
         
         public string Title { get; set; }
+        public string Description { get; set; }
         public QuestType Type { get; set; }
 
         public Quest(string title, QuestType type)
         {
             Title = title;
             Type = type;
+            Description = "";
+        }
+
+        public void Narrate()
+        {
+            Console.WriteLine($"Title : {Title}");
+            Console.WriteLine($"{Description}");
         }
 
     }
