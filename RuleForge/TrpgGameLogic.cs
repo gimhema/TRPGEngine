@@ -172,6 +172,15 @@ namespace RuleForge
         public void StartGame()
         {
             Console.WriteLine("TRPG Game Started!");
+
+            if (Chapters.Count > 0)
+            {
+                Chapters.First().Start(); 
+            }
+            else
+            {
+                Console.WriteLine("No chapters available.");
+            }
         }
         
 
