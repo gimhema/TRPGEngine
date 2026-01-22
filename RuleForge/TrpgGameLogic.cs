@@ -41,6 +41,19 @@ namespace RuleForge
                 Console.WriteLine("Invalid quest index.");
             }
         }
+
+        public bool IsCanNextChapter()
+        {
+            bool _ret = false;
+
+            // 메인 퀘스트가 클리어되었다면 _ret을 true로 변경
+            if (Quests.Where(q => q.Type == Quest.QuestType.Main).All(q => q.IsCompleted))
+            {
+                _ret = true;
+            }
+
+            return _ret
+        }
     }
 
     // Quest
@@ -55,6 +68,8 @@ namespace RuleForge
         public string Title { get; set; }
         public string Description { get; set; }
         public QuestType Type { get; set; }
+
+        public bool IsCompleted { get; set; } = false;
 
         public Quest(string title, QuestType type)
         {
