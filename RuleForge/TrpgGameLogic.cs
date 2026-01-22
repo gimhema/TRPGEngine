@@ -52,7 +52,7 @@ namespace RuleForge
                 _ret = true;
             }
 
-            return _ret
+            return _ret;
         }
     }
 
@@ -127,11 +127,30 @@ namespace RuleForge
 
     }
         
+    class RulebookParser
+    {
+        public List<Chapter> ParseRulebook(string filePath)
+        {
+            // 파일 읽기 및 파싱
+            List<Chapter> chapters = new List<Chapter>();
 
+            // Parse . . .
+
+            return chapters;
+        }
+    }
 
     class TrpgGameLogic
     {
         private static TrpgGameLogic _instance;
+
+        private List<Chapter> Chapters = new List<Chapter>();
+
+        public void LoadChapters(List<Chapter> chapters)
+        {
+            Chapters = chapters;
+        }
+
         public static TrpgGameLogic Instance
         {
             get
@@ -146,6 +165,7 @@ namespace RuleForge
 
         public TrpgGameLogic()
         {
+            // Initialize chapters and quests here if needed
 
         }
 
