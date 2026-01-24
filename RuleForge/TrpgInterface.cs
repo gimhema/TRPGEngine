@@ -8,10 +8,10 @@ namespace RuleForge
 {
     class TrpgInterface
     {
-        private static TrpgInterface _instance;
-        private Activity _currentActivity;
+        private static TrpgInterface? _instance;
+        private Activity? _currentActivity;
 
-        public Activity CurrentActivity
+        public Activity? CurrentActivity
         {
             get { return _currentActivity; }
             set { _currentActivity = value; }
@@ -74,7 +74,7 @@ namespace RuleForge
             Console.WriteLine("4. Exit");
             Console.Write("Select an option: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -113,7 +113,7 @@ namespace RuleForge
             Console.WriteLine("5. Escape");
             Console.Write("Select an action: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -157,7 +157,7 @@ namespace RuleForge
             Console.WriteLine("5. Return to Main Menu");
             Console.Write("Select an action: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -197,7 +197,7 @@ namespace RuleForge
             Console.WriteLine("5. Leave");
             Console.Write("Select an action: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -237,7 +237,7 @@ namespace RuleForge
             Console.WriteLine("4. Exit Shop");
             Console.Write("Select an action: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -273,7 +273,7 @@ namespace RuleForge
             Console.WriteLine("4. Back");
             Console.Write("Select an action: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -319,7 +319,7 @@ namespace RuleForge
             Console.WriteLine("4. Back");
             Console.Write("Select location: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -355,7 +355,7 @@ namespace RuleForge
             Console.WriteLine("3. Back");
             Console.Write("Select skill: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -386,7 +386,7 @@ namespace RuleForge
             Console.WriteLine("3. Back");
             Console.Write("Select item: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -415,7 +415,7 @@ namespace RuleForge
             Console.WriteLine("3. Back");
             Console.Write("Select item to sell: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -444,7 +444,7 @@ namespace RuleForge
             Console.WriteLine("3. Back");
             Console.Write("Select item to use: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {
@@ -473,7 +473,7 @@ namespace RuleForge
             Console.WriteLine("3. Back");
             Console.Write("Select item to drop: ");
 
-            string input = Console.ReadLine();
+            string input = Console.ReadLine() ?? "";
 
             switch (input)
             {

@@ -26,16 +26,14 @@ namespace RuleForge
         public string ActionName { get; set; }
         public string ActionDescription { get; set; }
 
-        public TrpgActor ActionTargetActor { get; set; }
+        public TrpgActor? ActionTargetActor { get; set; }
 
-        public TrpgStatus ActionCost { get; set; }
+        public TrpgStatus? ActionCost { get; set; }
 
         public TrpgGameAction()
         {
             ActionName = string.Empty;
             ActionDescription = string.Empty;
-            ActionTargetActor = null;
-            ActionCost = null;
         }
 
     }

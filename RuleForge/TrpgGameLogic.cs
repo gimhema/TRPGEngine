@@ -142,7 +142,7 @@ namespace RuleForge
 
     class TrpgGameLogic
     {
-        private static TrpgGameLogic _instance;
+        private static TrpgGameLogic? _instance;
 
         private List<Chapter> Chapters = new List<Chapter>();
 

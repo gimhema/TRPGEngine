@@ -42,7 +42,7 @@ namespace RuleForge
             }
         }
 
-        public TrpgStatus GetStatus(string name)
+        public TrpgStatus? GetStatus(string name)
         {
             if (Statuses.ContainsKey(name))
             {

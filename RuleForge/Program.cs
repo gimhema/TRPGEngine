@@ -23,7 +23,7 @@ internal static class Program
         CurrentGameMode = mode;
     }
 
-    public static async void StartGameSingle(string[] args)
+    public static void StartGameSingle(string[] args)
     {
         TrpgGameLogic.Instance.StartGame();
     }
@@ -104,7 +104,7 @@ internal static class Program
         GameStartPreprocess();
 
         Console.WriteLine("Select Game Mode: 1) Single Player  2) Multi Player Host  3) Multi Player Client");
-        var input = Console.ReadLine();
+        var input = Console.ReadLine() ?? "";
         switch (input)
         {
             case "1":
