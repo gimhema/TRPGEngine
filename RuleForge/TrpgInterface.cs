@@ -34,9 +34,6 @@ namespace RuleForge
             
         }
 
-        /// <summary>
-        /// 게임 활동 타입에 따라 사용자 입력을 처리하는 메소드
-        /// </summary>
         public void InputAction()
         {
             if (_currentActivity == null)
@@ -62,9 +59,6 @@ namespace RuleForge
             }
         }
 
-        /// <summary>
-        /// 메인 메뉴 입력 처리
-        /// </summary>
         private void HandleMainMenu()
         {
             Console.WriteLine("\n===== MAIN MENU =====");
@@ -297,20 +291,13 @@ namespace RuleForge
             }
         }
 
-        // ============ 도우미 메소드들 ============
 
-        /// <summary>
-        /// 액션 실행 (전투, 대화 등)
-        /// </summary>
         private void ExecuteAction(string actionName)
         {
             Console.WriteLine($"Executing action: {actionName}");
             // 실제 액션 로직은 TrpgGameLogic에 위임
         }
 
-        /// <summary>
-        /// 위치 선택
-        /// </summary>
         private void SelectLocation()
         {
             Console.WriteLine("1. Dungeon");

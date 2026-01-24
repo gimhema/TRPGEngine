@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -145,6 +146,7 @@ namespace RuleForge
         private static TrpgGameLogic? _instance;
 
         private List<Chapter> Chapters = new List<Chapter>();
+        
 
         public void LoadChapters(List<Chapter> chapters)
         {
@@ -183,6 +185,10 @@ namespace RuleForge
             }
         }
         
+        public void DoAction(string actionName)
+        {
+            
+        }
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,20 +8,7 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
-    class TrpgGameSituation
-    {
-        public string SituationName { get; set; }
-        public string SituationDescription { get; set; }
 
-        public List<TrpgGameAction> PossibleActions { get; set; }
-
-        public TrpgGameSituation()
-        {
-            SituationName = string.Empty;
-            SituationDescription = string.Empty;
-            PossibleActions = new List<TrpgGameAction>();
-        }
-    }
     class TrpgGameAction
     {
         public string ActionName { get; set; }
@@ -34,6 +22,11 @@ namespace RuleForge
         {
             ActionName = string.Empty;
             ActionDescription = string.Empty;
+        }
+
+        public void ExecuteAction()
+        {
+            Console.WriteLine($"Action executed: {ActionName}");
         }
 
     }
