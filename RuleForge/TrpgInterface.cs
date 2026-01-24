@@ -8,25 +8,13 @@ namespace RuleForge
 {
     class TrpgInterface
     {
-        // 게임 상태 정의
-        public enum GameState
-        {
-            MainMenu,        // 메인 메뉴
-            InBattle,        // 전투 중
-            Exploration,     // 모험 중
-            NpcInteraction,  // NPC 상호작용
-            Shop,            // 상점
-            Inventory,       // 인벤토리
-            Paused           // 일시정지
-        }
-
         private static TrpgInterface _instance;
-        private GameState _currentState = GameState.MainMenu;
+        private Activity _currentActivity;
 
-        public GameState CurrentState
+        public Activity CurrentActivity
         {
-            get { return _currentState; }
-            set { _currentState = value; }
+            get { return _currentActivity; }
+            set { _currentActivity = value; }
         }
 
         public static TrpgInterface Instance
@@ -47,35 +35,29 @@ namespace RuleForge
         }
 
         /// <summary>
-        /// 게임 상태에 따라 사용자 입력을 처리하는 메소드
+        /// 게임 활동 타입에 따라 사용자 입력을 처리하는 메소드
         /// </summary>
         public void InputAction()
         {
-            switch (_currentState)
+            if (_currentActivity == null)
             {
-                case GameState.MainMenu:
-                    HandleMainMenuInput();
-                    break;
-                case GameState.InBattle:
+                HandleMainMenu();
+                return;
+            }
+
+            switch (_currentActivity.Type)
+            {
+                case Activity.ActivityType.Combat:
                     HandleBattleInput();
                     break;
-                case GameState.Exploration:
+                case Activity.ActivityType.Exploration:
                     HandleExplorationInput();
                     break;
-                case GameState.NpcInteraction:
-                    HandleNpcInteractionInput();
-                    break;
-                case GameState.Shop:
-                    HandleShopInput();
-                    break;
-                case GameState.Inventory:
-                    HandleInventoryInput();
-                    break;
-                case GameState.Paused:
-                    HandlePausedInput();
+                case Activity.ActivityType.Social:
+                    HandleSocialInput();
                     break;
                 default:
-                    Console.WriteLine("Unknown game state.");
+                    Console.WriteLine("Unknown activity type.");
                     break;
             }
         }
@@ -83,7 +65,7 @@ namespace RuleForge
         /// <summary>
         /// 메인 메뉴 입력 처리
         /// </summary>
-        private void HandleMainMenuInput()
+        private void HandleMainMenu()
         {
             Console.WriteLine("\n===== MAIN MENU =====");
             Console.WriteLine("1. Start Game");
@@ -98,12 +80,12 @@ namespace RuleForge
             {
                 case "1":
                     Console.WriteLine("Starting new game...");
-                    _currentState = GameState.Exploration;
+                    _currentActivity = new Activity(Activity.ActivityType.Exploration);
                     TrpgGameLogic.Instance.StartGame();
                     break;
                 case "2":
                     Console.WriteLine("Loading saved game...");
-                    _currentState = GameState.Exploration;
+                    _currentActivity = new Activity(Activity.ActivityType.Exploration);
                     break;
                 case "3":
                     Console.WriteLine("Opening settings...");
@@ -149,12 +131,12 @@ namespace RuleForge
                     break;
                 case "4":
                     Console.WriteLine("Opening item menu...");
-                    _currentState = GameState.Inventory;
+                    HandleInventoryInput();
                     break;
                 case "5":
                     Console.WriteLine("Attempting to escape from battle...");
                     // 도망치기 성공 시 Exploration으로 전환
-                    _currentState = GameState.Exploration;
+                    _currentActivity = new Activity(Activity.ActivityType.Exploration);
                     break;
                 default:
                     Console.WriteLine("Invalid action. Please try again.");
@@ -184,7 +166,7 @@ namespace RuleForge
                     SelectLocation();
                     break;
                 case "2":
-                    _currentState = GameState.Inventory;
+                    HandleInventoryInput();
                     break;
                 case "3":
                     Console.WriteLine("Resting...");
@@ -194,24 +176,27 @@ namespace RuleForge
                     Console.WriteLine("Game saved.");
                     break;
                 case "5":
-                    _currentState = GameState.MainMenu;
+                    _currentActivity = null;
                     break;
                 default:
                     Console.WriteLine("Invalid action. Please try again.");
                     break;
             }
         }
+            }
+        }
 
         /// <summary>
-        /// NPC 상호작용 입력 처리
+        /// 사회 활동(NPC 상호작용, 상점 등) 입력 처리
         /// </summary>
-        private void HandleNpcInteractionInput()
+        private void HandleSocialInput()
         {
-            Console.WriteLine("\n===== NPC INTERACTION =====");
+            Console.WriteLine("\n===== SOCIAL INTERACTION =====");
             Console.WriteLine("1. Talk");
             Console.WriteLine("2. Trade");
-            Console.WriteLine("3. Accept Quest");
-            Console.WriteLine("4. Leave");
+            Console.WriteLine("3. Check Inventory");
+            Console.WriteLine("4. Accept Quest");
+            Console.WriteLine("5. Leave");
             Console.Write("Select an action: ");
 
             string input = Console.ReadLine();
@@ -223,14 +208,18 @@ namespace RuleForge
                     ExecuteAction("Talk");
                     break;
                 case "2":
-                    _currentState = GameState.Shop;
+                    Console.WriteLine("Opening shop...");
+                    HandleShop();
                     break;
                 case "3":
+                    HandleInventoryInput();
+                    break;
+                case "4":
                     Console.WriteLine("Quest accepted!");
                     ExecuteAction("AcceptQuest");
                     break;
-                case "4":
-                    _currentState = GameState.Exploration;
+                case "5":
+                    _currentActivity = new Activity(Activity.ActivityType.Exploration);
                     break;
                 default:
                     Console.WriteLine("Invalid action. Please try again.");
@@ -239,9 +228,9 @@ namespace RuleForge
         }
 
         /// <summary>
-        /// 상점 입력 처리
+        /// 상점 처리
         /// </summary>
-        private void HandleShopInput()
+        private void HandleShop()
         {
             Console.WriteLine("\n===== SHOP =====");
             Console.WriteLine("1. Buy Item");
@@ -263,10 +252,10 @@ namespace RuleForge
                     SellItem();
                     break;
                 case "3":
-                    _currentState = GameState.Inventory;
+                    HandleInventoryInput();
                     break;
                 case "4":
-                    _currentState = GameState.NpcInteraction;
+                    // 돌아가기
                     break;
                 default:
                     Console.WriteLine("Invalid action. Please try again.");
@@ -302,50 +291,10 @@ namespace RuleForge
                     Console.WriteLine("Equipment screen...");
                     break;
                 case "4":
-                    // 이전 상태로 복귀 (정보 저장 필요 시 추가 가능)
-                    _currentState = GameState.Exploration;
+                    // 돌아가기 (Activity 상태에서 복귀)
                     break;
                 default:
                     Console.WriteLine("Invalid action. Please try again.");
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 일시정지 입력 처리
-        /// </summary>
-        private void HandlePausedInput()
-        {
-            Console.WriteLine("\n===== PAUSED =====");
-            Console.WriteLine("1. Resume");
-            Console.WriteLine("2. Settings");
-            Console.WriteLine("3. Save Game");
-            Console.WriteLine("4. Load Game");
-            Console.WriteLine("5. Return to Main Menu");
-            Console.Write("Select an option: ");
-
-            string input = Console.ReadLine();
-
-            switch (input)
-            {
-                case "1":
-                    _currentState = GameState.Exploration;
-                    break;
-                case "2":
-                    Console.WriteLine("Opening settings...");
-                    break;
-                case "3":
-                    Console.WriteLine("Game saved.");
-                    break;
-                case "4":
-                    Console.WriteLine("Loading game...");
-                    _currentState = GameState.Exploration;
-                    break;
-                case "5":
-                    _currentState = GameState.MainMenu;
-                    break;
-                default:
-                    Console.WriteLine("Invalid option. Please try again.");
                     break;
             }
         }
@@ -378,11 +327,11 @@ namespace RuleForge
             {
                 case "1":
                     Console.WriteLine("Entering dungeon...");
-                    _currentState = GameState.InBattle;
+                    _currentActivity = new Activity(Activity.ActivityType.Combat);
                     break;
                 case "2":
                     Console.WriteLine("Arriving at village...");
-                    _currentState = GameState.NpcInteraction;
+                    _currentActivity = new Activity(Activity.ActivityType.Social);
                     break;
                 case "3":
                     Console.WriteLine("Exploring forest...");
