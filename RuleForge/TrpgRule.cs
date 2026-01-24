@@ -21,6 +21,29 @@ namespace RuleForge
 
     class TrpgRule
     {
-        
+        private Dictionary<string, TrpgGameAction> GameActions = new Dictionary<string, TrpgGameAction>();
+
+        public void InitializeGameActionsByRulebook(string filePath)
+        {
+            
+        }
+
+        public TrpgRule()
+        {
+            
+        }
+
+        public void DoAction(string actionName)
+        {
+            if (GameActions.ContainsKey(actionName))
+            {
+                GameActions[actionName].ExecuteAction();
+            }
+            else
+            {
+                Console.WriteLine($"Action '{actionName}' not found.");
+            }
+        }
+
     }
 }

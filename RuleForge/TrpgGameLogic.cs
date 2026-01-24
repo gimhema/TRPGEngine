@@ -132,9 +132,8 @@ namespace RuleForge
     class TrpgGameLogic
     {
         private static TrpgGameLogic? _instance;
-
+        private TrpgRule GameRule = new TrpgRule();
         private List<Chapter> Chapters = new List<Chapter>();
-        private Dictionary<string, TrpgGameAction> GameActions = new Dictionary<string, TrpgGameAction>();
 
         public void LoadChapters(List<Chapter> chapters)
         {
@@ -159,12 +158,6 @@ namespace RuleForge
 
         }
 
-        public void InitializeGameActionsByRulebook(string filePath)
-        {
-            // Parse the rulebook and initialize game actions
-            
-        }
-
         public void StartGame()
         {
             Console.WriteLine("TRPG Game Started!");
@@ -181,14 +174,7 @@ namespace RuleForge
         
         public void DoAction(string actionName)
         {
-            if (GameActions.ContainsKey(actionName))
-            {
-                GameActions[actionName].ExecuteAction();
-            }
-            else
-            {
-                Console.WriteLine($"Action '{actionName}' not found.");
-            }            
+            GameRule.DoAction(actionName);
         }
 
     }
