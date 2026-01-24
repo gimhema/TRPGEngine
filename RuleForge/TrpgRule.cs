@@ -6,6 +6,19 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
+    class RulebookParser
+    {
+        public List<Chapter> ParseRulebook(string filePath)
+        {
+            // 파일 읽기 및 파싱
+            List<Chapter> chapters = new List<Chapter>();
+
+            // Parse . . .
+
+            return chapters;
+        }
+    }
+
     class TrpgRule
     {
         

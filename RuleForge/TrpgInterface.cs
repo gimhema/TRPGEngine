@@ -294,8 +294,7 @@ namespace RuleForge
 
         private void ExecuteAction(string actionName)
         {
-            Console.WriteLine($"Executing action: {actionName}");
-            // 실제 액션 로직은 TrpgGameLogic에 위임
+            TrpgGameLogic.Instance.DoAction(actionName);
         }
 
         private void SelectLocation()
