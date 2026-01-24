@@ -183,8 +183,6 @@ namespace RuleForge
                     break;
             }
         }
-            }
-        }
 
         /// <summary>
         /// 사회 활동(NPC 상호작용, 상점 등) 입력 처리
