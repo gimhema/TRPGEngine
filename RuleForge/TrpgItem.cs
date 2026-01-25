@@ -20,11 +20,22 @@ namespace RuleForge
 
     class Equipment : TrpgItem
     {
+        enum EquipmentType
+        {
+            Default,
+            Weapon,
+            Armor,
+            Accessory
+        }
+
+        private EquipmentType TypeOfEquipment = EquipmentType.Default;
+
         private Dictionary<string, TrpgStatus> EquipmentStatuses = new Dictionary<string, TrpgStatus>();
         public Equipment(string name, string description = "") : base(name, description)
         {
-            
-        }
+
+        }           
+        
 
         public TrpgStatus? GetStatusByName(string statusName)
         {
