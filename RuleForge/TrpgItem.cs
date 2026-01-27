@@ -16,6 +16,11 @@ namespace RuleForge
             ItemName = name;
             ItemDescription = description;
         }
+
+        public void Use()
+        {
+            Console.WriteLine($"Item used: {ItemName}");
+        }
     }
 
     class Equipment : TrpgItem
@@ -49,14 +54,40 @@ namespace RuleForge
 
     class Consumable : TrpgItem
     {
+        public int Quantity { get; set; }
+
         public Consumable(string name, string description = "") : base(name, description)
         {
             
         }
 
-        public void UseItem(TrpgActor targetActor)
+        // 부모 클래스의  Use 메서드를 오버라이드
+        public new void Use()
         {
-            Console.WriteLine($"{targetActor.Name} used {ItemName}.");
+            if (Quantity > 0)
+            {
+                Quantity--;
+                Console.WriteLine($"Consumable used: {ItemName}, Remaining quantity: {Quantity}");
+            }
+            else
+            {
+                Console.WriteLine($"No more {ItemName} left to use.");
+            }
+        }
+
+    }
+
+    class KeyItem : TrpgItem
+    {
+        public KeyItem(string name, string description = "") : base(name, description)
+        {
+
+        }
+
+        // 부모 클래스의 Use 메서드를 오버라이드
+        public new void Use()
+        {
+            Console.WriteLine($"Key item used: {ItemName}. It cannot be consumed.");
         }
     }
 
