@@ -25,7 +25,7 @@ namespace RuleForge
             
         }
 
-        void EquipItem(Equipment item)
+        public void Equip(Equipment item)
         {
             if (!EquippedItems.ContainsKey(item.ItemName))
             {
@@ -33,7 +33,7 @@ namespace RuleForge
             }
         }
 
-        void UnequipItem(string itemName)
+        public void Unequip(string itemName)
         {
             if (EquippedItems.ContainsKey(itemName))
             {
@@ -57,8 +57,56 @@ namespace RuleForge
         }
 
 // 장비 아이템 전용
+        public void AcquireEquipment(Equipment item)
+        {
+            EquipmentItems.Add(item);
+        }
+        public void DropEquipment(int selectedIndex)
+        {
+            if (selectedIndex >= 0 && selectedIndex < EquipmentItems.Count)
+            {
+                EquipmentItems.RemoveAt(selectedIndex);
+            }
+        }
+// 장비 장착
+        public void EquipItem(int selectedIndex, PlayerEquipments equipments)
+        {
+            if (selectedIndex >= 0 && selectedIndex < EquipmentItems.Count)
+            {
+                Equipment itemToEquip = EquipmentItems[selectedIndex];
+                equipments.Equip(itemToEquip);
+            }
+        }
+
+        public void UnequipItem(string itemName, PlayerEquipments equipments)
+        {
+            equipments.Unequip(itemName);
+        }
+
 
 // 소비 아이템 전용
+        public void AcquireConsumable(Consumable item)
+        {
+            ConsumableItems.Add(item);
+        }
+        public void UseConsumable(int selectedIndex)
+        {
+            if (selectedIndex >= 0 && selectedIndex < ConsumableItems.Count)
+            {
+                ConsumableItems[selectedIndex].Use();
+                if (ConsumableItems[selectedIndex].Quantity <= 0)
+                {
+                    ConsumableItems.RemoveAt(selectedIndex);
+                }
+            }
+        }
+        public void DropConsumable(int selectedIndex)
+        {
+            if (selectedIndex >= 0 && selectedIndex < ConsumableItems.Count)
+            {
+                ConsumableItems.RemoveAt(selectedIndex);
+            }
+        }
 
 // 키 아이템 전용
         public void SubmitKeyItem(int selectedIndex)
