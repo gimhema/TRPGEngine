@@ -16,6 +16,7 @@ namespace RuleForge
         }
     }
 
+// 장비창
     class PlayerEquipments
     {
         Dictionary<string, Equipment> EquippedItems = new Dictionary<string, Equipment>();
@@ -46,10 +47,27 @@ namespace RuleForge
         public List<Consumable> ConsumableItems { get; set; }
         public List<Equipment> EquipmentItems { get; set; }
 
+        public List<KeyItem> KeyItems { get; set; }
+
         public PlayerItemBag()
         {
             ConsumableItems = new List<Consumable>();
             EquipmentItems = new List<Equipment>();
+            KeyItems = new List<KeyItem>();
+        }
+
+// 장비 아이템 전용
+
+// 소비 아이템 전용
+
+// 키 아이템 전용
+        public void SubmitKeyItem(int selectedIndex)
+        {
+            if (selectedIndex >= 0 && selectedIndex < KeyItems.Count)
+            {
+                KeyItems[selectedIndex].Use();
+                KeyItems.RemoveAt(selectedIndex);
+            }
         }
     }
 
