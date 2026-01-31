@@ -162,7 +162,9 @@ namespace RuleForge
 
         public void StartGame()
         {
-            Console.WriteLine("TRPG Game Started!");
+            IntroduceGame();
+            
+            PlayerSetting();
 
             if (Chapters.Count > 0)
             {
