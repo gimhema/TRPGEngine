@@ -181,20 +181,37 @@ namespace RuleForge
 
         public void IntroduceGame()
         {
-
+            // Print Game introduction
         }
 
         public void PlayerSetting()
         {
 
             // 우선 싱글 플레이어 모드만 고려
+            Console.WriteLine("Enter your player name:");
+            string playerName = Console.ReadLine() ?? "Player1";
+            TrpgPlayer newPlayer = new TrpgPlayer(playerName);
+            Players.Add(playerName, newPlayer);
+
+            Console.WriteLine("Next.. What's your age?");
+            string ageInput = Console.ReadLine() ?? "18";
+            if (int.TryParse(ageInput, out int age))
+            {
+                newPlayer.playerProfile.age = age;
+            }
+            else
+            {
+                newPlayer.playerProfile.age = 18; // Default age
+            }
+
 
 
             // 나중에 멀티 모드도 고려해야함
 
         }
 
-        
+
+
 
     }
 }

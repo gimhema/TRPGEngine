@@ -119,8 +119,23 @@ namespace RuleForge
         }
     }
 
+    class PlayerProfile
+    {
+        public string gender { get; set; }
+        public int age { get; set; }
+
+        public string backgroundStory { get; set; }   
+
+        public int PlayerLevel { get; set; }
+
+        public PlayerProfile()
+        {
+        }
+    }
+
     class TrpgPlayer : TrpgActor
     {
+        public PlayerProfile playerProfile = new PlayerProfile();
         public PlayerClass playerClass { get; set; }
         public PlayerItemBag playerItemBag { get; set; }
         public PlayerEquipments playerEquipments { get; set; }
