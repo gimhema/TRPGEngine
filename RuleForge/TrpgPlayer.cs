@@ -124,6 +124,10 @@ namespace RuleForge
         public string gender { get; set; }
         public int age { get; set; }
 
+        public string personality { get; set; }
+
+        public string job { get; set; }
+
         public string backgroundStory { get; set; }   
 
         public int PlayerLevel { get; set; }

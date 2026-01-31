@@ -190,8 +190,8 @@ namespace RuleForge
             // 우선 싱글 플레이어 모드만 고려
             Console.WriteLine("Enter your player name:");
             string playerName = Console.ReadLine() ?? "Player1";
+
             TrpgPlayer newPlayer = new TrpgPlayer(playerName);
-            Players.Add(playerName, newPlayer);
 
             Console.WriteLine("Next.. What's your age?");
             string ageInput = Console.ReadLine() ?? "18";
@@ -203,6 +203,26 @@ namespace RuleForge
             {
                 newPlayer.playerProfile.age = 18; // Default age
             }
+
+            Console.WriteLine("Tell mey about yout gender:");
+            string genderInput = Console.ReadLine() ?? "Not Specified";
+            newPlayer.playerProfile.gender = genderInput;
+
+            Console.WriteLine("And describe your personality:");
+            string personalityInput = Console.ReadLine() ?? "Neutral";  
+            newPlayer.playerProfile.personality = personalityInput;
+
+            Console.WriteLine("What's your job?");
+            string jobInput = Console.ReadLine() ?? "Adventurer";
+            newPlayer.playerProfile.job = jobInput;
+
+            Console.WriteLine("Finally, share a bit of your background story:");
+            string backgroundInput = Console.ReadLine() ?? "A mysterious past.";
+            newPlayer.playerProfile.backgroundStory = backgroundInput;
+
+            Console.WriteLine("Player profile created successfully!");
+
+            Players.Add(playerName, newPlayer);
 
 
 
