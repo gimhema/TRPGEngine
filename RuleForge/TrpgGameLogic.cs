@@ -135,6 +135,8 @@ namespace RuleForge
         private TrpgRule GameRule = new TrpgRule();
         private List<Chapter> Chapters = new List<Chapter>();
 
+        private Dictionary<string, TrpgPlayer> Players = new Dictionary<string, TrpgPlayer>();
+
         public void LoadChapters(List<Chapter> chapters)
         {
             Chapters = chapters;
@@ -176,6 +178,23 @@ namespace RuleForge
         {
             GameRule.DoAction(actionName);
         }
+
+        public void IntroduceGame()
+        {
+
+        }
+
+        public void PlayerSetting()
+        {
+
+            // 우선 싱글 플레이어 모드만 고려
+
+
+            // 나중에 멀티 모드도 고려해야함
+
+        }
+
+        
 
     }
 }
