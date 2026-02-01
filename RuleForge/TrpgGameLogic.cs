@@ -23,20 +23,10 @@ namespace RuleForge
 
         public void Start()
         {
-            MainLogic();
-        }
-
-        public void MainLogic()
-        {
-            if (currentQuestIndex < Quests.Count)
+            Console.WriteLine($"Chapter started: {Title}");
+            foreach (var quest in Quests)
             {
-                Quest currentQuest = Quests[currentQuestIndex];
-                currentQuest.Narrate();
-                // 퀘스트 진행 로직 추가
-            }
-            else
-            {
-                Console.WriteLine("All quests in this chapter are completed.");
+                Console.WriteLine($"Starting quest: {quest.Title} ({quest.Type})");
             }
         }
 
@@ -176,13 +166,27 @@ namespace RuleForge
             
             PlayerSetting();
 
-            if (Chapters.Count > 0)
+            GameLoop();
+        }
+
+        public void GameLoop()
+        {
+            while (true)
             {
-                Chapters.First().Start(); 
-            }
-            else
-            {
-                Console.WriteLine("No chapters available.");
+                // Main game loop logic
+                Console.WriteLine("Game is running...");
+
+            // if (Chapters.Count > 0)
+            // {
+            //     Chapters.First().Start(); 
+            // }
+            // else
+            // {
+            //     Console.WriteLine("No chapters available.");
+            // }
+
+                // For demonstration, we'll just break the loop
+                break;
             }
         }
         
