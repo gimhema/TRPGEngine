@@ -23,10 +23,20 @@ namespace RuleForge
 
         public void Start()
         {
-            Console.WriteLine($"Chapter started: {Title}");
-            foreach (var quest in Quests)
+            MainLogic();
+        }
+
+        public void MainLogic()
+        {
+            if (currentQuestIndex < Quests.Count)
             {
-                Console.WriteLine($"Starting quest: {quest.Title} ({quest.Type})");
+                Quest currentQuest = Quests[currentQuestIndex];
+                currentQuest.Narrate();
+                // 퀘스트 진행 로직 추가
+            }
+            else
+            {
+                Console.WriteLine("All quests in this chapter are completed.");
             }
         }
 
