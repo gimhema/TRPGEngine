@@ -137,6 +137,20 @@ namespace RuleForge
 
         private Dictionary<string, TrpgPlayer> Players = new Dictionary<string, TrpgPlayer>();
 
+        private bool IsGameExit { get; set; } = false;
+
+        private bool IsGameCleard { get; set; } = false;
+
+        public void SetGameExit(bool isExit)
+        {
+            IsGameExit = isExit;
+        }
+
+        public void SetGameCleard(bool isCleard)
+        {
+            IsGameCleard = isCleard;
+        }
+
         public void LoadChapters(List<Chapter> chapters)
         {
             Chapters = chapters;
@@ -175,6 +189,22 @@ namespace RuleForge
             {
                 // Main game loop logic
                 Console.WriteLine("Game is running...");
+
+                if(IsGameExit)
+                {
+                    // 인터페에스에서 종료 처리를 했을경우
+                    // 바로 종료시킴
+                    Console.WriteLine("Exiting game...");
+                    break;
+                }
+
+                if(IsGameCleard)
+                {
+                    // 게임 클리어시 처리
+                    // 종료시키진않고 인터페이스에서 홈화면으로 되돌림
+                    Console.WriteLine("Congratulations! You have cleared the game!");
+                    break;
+                }
 
             // if (Chapters.Count > 0)
             // {
