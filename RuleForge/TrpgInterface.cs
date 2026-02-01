@@ -34,6 +34,14 @@ namespace RuleForge
             
         }
 
+        public void InputSpin()
+        {
+            while (true)
+            {
+                // InputAction();
+            }
+        }
+
         public void InputAction()
         {
             if (_currentActivity == null)
