@@ -34,7 +34,7 @@ namespace RuleForge
             
         }
 
-        public void InputSpin()
+        public async void InputSpin()
         {
             while (true)
             {
