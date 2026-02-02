@@ -141,8 +141,8 @@ namespace RuleForge
     {
         public PlayerProfile playerProfile = new PlayerProfile();
         public PlayerClass playerClass { get; set; }
-        public PlayerItemBag playerItemBag { get; set; }
-        public PlayerEquipments playerEquipments { get; set; }
+        public PlayerItemBag playerItemBag { get; set; } = new PlayerItemBag();
+        public PlayerEquipments playerEquipments { get; set; } = new PlayerEquipments();
         public TrpgPlayer(string name, string description = "", string className = "") : base(name, description)
         {
             playerClass = new PlayerClass(className);

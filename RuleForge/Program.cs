@@ -100,9 +100,10 @@ internal static class Program
 
     public static async Task Main(string[] args)
     {
-        TrpgInterface.Instance.InputSpin();
-
         GameStartPreprocess();
+
+        await TrpgInterface.Instance.InputSpin();
+
 
         Console.WriteLine("Select Game Mode: 1) Single Player  2) Multi Player Host  3) Multi Player Client");
         var input = Console.ReadLine() ?? "";

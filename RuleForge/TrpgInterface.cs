@@ -34,11 +34,12 @@ namespace RuleForge
             
         }
 
-        public async void InputSpin()
+        public async Task InputSpin()
         {
             while (true)
             {
                 // InputAction();
+                await Task.Delay(100);
             }
         }
 

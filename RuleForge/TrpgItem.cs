@@ -33,8 +33,6 @@ namespace RuleForge
             Accessory
         }
 
-        private EquipmentType TypeOfEquipment = EquipmentType.Default;
-
         private Dictionary<string, TrpgStatus> EquipmentStatuses = new Dictionary<string, TrpgStatus>();
         public Equipment(string name, string description = "") : base(name, description)
         {
