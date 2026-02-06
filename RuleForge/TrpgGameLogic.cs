@@ -21,26 +21,24 @@ namespace RuleForge
             Quests = new List<Quest>();
         }
 
-        public void Start()
+        public string GetStartNarrative()
         {
-            Console.WriteLine($"Chapter started: {Title}");
+            var narrative = $"Chapter started: {Title}\n";
             foreach (var quest in Quests)
             {
-                Console.WriteLine($"Starting quest: {quest.Title} ({quest.Type})");
+                narrative += $"Starting quest: {quest.Title} ({quest.Type})\n";
             }
+            return narrative;
         }
 
-        public void SelectQuest(int index)
+        public bool SelectQuest(int index)
         {
             if (index >= 0 && index < Quests.Count)
             {
                 currentQuestIndex = index;
-                Console.WriteLine($"Quest selected: {Quests[index].Title}");
+                return true;
             }
-            else
-            {
-                Console.WriteLine("Invalid quest index.");
-            }
+            return false;
         }
 
         public bool IsCanNextChapter()
@@ -79,16 +77,15 @@ namespace RuleForge
             Description = "";
         }
 
-        public void Narrate()
+        public string GetNarrative()
         {
-            Console.WriteLine($"Title : {Title}");
-            Console.WriteLine($"{Description}");
+            return $"Title : {Title}\n{Description}";
         }
 
     }
 
     // Activity
-    class Activity
+    public class Activity
     {
         public enum ActivityType
         {
@@ -104,32 +101,25 @@ namespace RuleForge
             Type = type;
         }
 
-        public void SelectActivity()
-        {
-            Console.WriteLine($"Activity selected: {Type}");
-            Do();
-        }
-
-        public void Do()
+        public string GetActivityNarrative()
         {
             switch(Type)
             {
                 case ActivityType.Combat:
-                    Console.WriteLine("Engaging in combat...");
-                    break;
+                    return "Engaging in combat...";
                 case ActivityType.Exploration:
-                    Console.WriteLine("Exploring the area...");
-                    break;
+                    return "Exploring the area...";
                 case ActivityType.Social:
-                    Console.WriteLine("Interacting with NPCs...");
-                    break;
+                    return "Interacting with NPCs...";
+                default:
+                    return $"Activity: {Type}";
             }
         }
 
     }
         
 
-    class TrpgGameLogic
+    public class TrpgGameLogic
     {
         private static TrpgGameLogic? _instance;
         private TrpgRule GameRule = new TrpgRule();
@@ -174,50 +164,13 @@ namespace RuleForge
 
         }
 
-        public void StartGame()
+        /// <summary>
+        /// 게임 시작 (GameState 초기화)
+        /// </summary>
+        public void InitializeGame(TrpgGameState state)
         {
-            IntroduceGame();
-            
-            PlayerSetting();
-
-            GameLoop();
-        }
-
-        public void GameLoop()
-        {
-            while (true)
-            {
-                // Main game loop logic
-                Console.WriteLine("Game is running...");
-
-                if(IsGameExit)
-                {
-                    // 인터페에스에서 종료 처리를 했을경우
-                    // 바로 종료시킴
-                    Console.WriteLine("Exiting game...");
-                    break;
-                }
-
-                if(IsGameCleard)
-                {
-                    // 게임 클리어시 처리
-                    // 종료시키진않고 인터페이스에서 홈화면으로 되돌림
-                    Console.WriteLine("Congratulations! You have cleared the game!");
-                    break;
-                }
-
-            // if (Chapters.Count > 0)
-            // {
-            //     Chapters.First().Start(); 
-            // }
-            // else
-            // {
-            //     Console.WriteLine("No chapters available.");
-            // }
-
-                // For demonstration, we'll just break the loop
-                break;
-            }
+            state.NarrativeText = "게임에 오신 것을 환영합니다!";
+            state.CurrentScene = TrpgGameState.SceneType.PlayerSetup;
         }
         
         public void DoAction(string actionName)
@@ -231,59 +184,64 @@ namespace RuleForge
         public void ProcessInput(string input, TrpgGameState state)
         {
             // 현재 씬에 따라 다르게 처리
-            // 추후 구현 예정
-            Console.WriteLine($"처리되지 않은 입력: {input}");
+            switch (state.CurrentScene)
+            {
+                case TrpgGameState.SceneType.PlayerSetup:
+                    // 플레이어 설정 중에는 선택지를 통해 처리
+                    break;
+                case TrpgGameState.SceneType.Exploration:
+                    // 탐험 중 입력 처리
+                    break;
+                case TrpgGameState.SceneType.Combat:
+                    // 전투 중 입력 처리
+                    break;
+                default:
+                    state.NarrativeText = $"처리되지 않은 입력: {input}";
+                    break;
+            }
         }
 
-        public void IntroduceGame()
+        /// <summary>
+        /// 플레이어 생성
+        /// </summary>
+        public TrpgPlayer CreatePlayer(string name, int age = 18, string gender = "Not Specified",
+            string personality = "Neutral", string job = "Adventurer", string backgroundStory = "A mysterious past.")
         {
-            // Print Game introduction
+            var newPlayer = new TrpgPlayer(name);
+            newPlayer.playerProfile.age = age;
+            newPlayer.playerProfile.gender = gender;
+            newPlayer.playerProfile.personality = personality;
+            newPlayer.playerProfile.job = job;
+            newPlayer.playerProfile.backgroundStory = backgroundStory;
+            newPlayer.playerProfile.PlayerLevel = 1;
+
+            // 기본 스탯 설정
+            newPlayer.CommonAttributes.AddNewStatus("HP", 100);
+            newPlayer.CommonAttributes.AddNewStatus("MP", 50);
+
+            Players[name] = newPlayer;
+            return newPlayer;
         }
 
-        public void PlayerSetting()
+        /// <summary>
+        /// 플레이어 가져오기
+        /// </summary>
+        public TrpgPlayer? GetPlayer(string name)
         {
+            return Players.ContainsKey(name) ? Players[name] : null;
+        }
 
-            // 우선 싱글 플레이어 모드만 고려
-            Console.WriteLine("Enter your player name:");
-            string playerName = Console.ReadLine() ?? "Player1";
-
-            TrpgPlayer newPlayer = new TrpgPlayer(playerName);
-
-            Console.WriteLine("Next.. What's your age?");
-            string ageInput = Console.ReadLine() ?? "18";
-            if (int.TryParse(ageInput, out int age))
+        /// <summary>
+        /// 챕터 시작
+        /// </summary>
+        public void StartChapter(int chapterIndex, TrpgGameState state)
+        {
+            if (chapterIndex >= 0 && chapterIndex < Chapters.Count)
             {
-                newPlayer.playerProfile.age = age;
+                state.CurrentChapter = Chapters[chapterIndex];
+                state.NarrativeText = Chapters[chapterIndex].GetStartNarrative();
+                state.CurrentScene = TrpgGameState.SceneType.Exploration;
             }
-            else
-            {
-                newPlayer.playerProfile.age = 18; // Default age
-            }
-
-            Console.WriteLine("Tell mey about yout gender:");
-            string genderInput = Console.ReadLine() ?? "Not Specified";
-            newPlayer.playerProfile.gender = genderInput;
-
-            Console.WriteLine("And describe your personality:");
-            string personalityInput = Console.ReadLine() ?? "Neutral";  
-            newPlayer.playerProfile.personality = personalityInput;
-
-            Console.WriteLine("What's your job?");
-            string jobInput = Console.ReadLine() ?? "Adventurer";
-            newPlayer.playerProfile.job = jobInput;
-
-            Console.WriteLine("Finally, share a bit of your background story:");
-            string backgroundInput = Console.ReadLine() ?? "A mysterious past.";
-            newPlayer.playerProfile.backgroundStory = backgroundInput;
-
-            Console.WriteLine("Player profile created successfully!");
-
-            Players.Add(playerName, newPlayer);
-
-
-
-            // 나중에 멀티 모드도 고려해야함
-
         }
 
 
