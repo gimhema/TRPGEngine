@@ -225,6 +225,16 @@ namespace RuleForge
             GameRule.DoAction(actionName);
         }
 
+        /// <summary>
+        /// 입력 처리 (GameController에서 호출)
+        /// </summary>
+        public void ProcessInput(string input, TrpgGameState state)
+        {
+            // 현재 씬에 따라 다르게 처리
+            // 추후 구현 예정
+            Console.WriteLine($"처리되지 않은 입력: {input}");
+        }
+
         public void IntroduceGame()
         {
             // Print Game introduction
