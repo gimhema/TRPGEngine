@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
-    class TrpgItem
+    public class TrpgItem
     {
         public string ItemName { get; set; }
         public string ItemDescription { get; set; }
@@ -23,7 +23,7 @@ namespace RuleForge
         }
     }
 
-    class Equipment : TrpgItem
+    public class Equipment : TrpgItem
     {
         enum EquipmentType
         {
@@ -50,7 +50,7 @@ namespace RuleForge
         }
     }
 
-    class Consumable : TrpgItem
+    public class Consumable : TrpgItem
     {
         public int Quantity { get; set; }
 
@@ -75,7 +75,7 @@ namespace RuleForge
 
     }
 
-    class KeyItem : TrpgItem
+    public class KeyItem : TrpgItem
     {
         public KeyItem(string name, string description = "") : base(name, description)
         {

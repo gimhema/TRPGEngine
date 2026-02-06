@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
-    class TrpgStatus
+    public class TrpgStatus
     {
         public string StatusName { get; set; }
         public int StatusValue { get; set; }
@@ -17,7 +17,7 @@ namespace RuleForge
             StatusValue = value;
         }
     }
-    class TrpgCommon
+    public class TrpgCommon
     {
         public Dictionary<string, TrpgStatus> Statuses { get; set; }
 
