@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace RuleForge
 {
     // Chapter
-    class Chapter
+    public class Chapter
     {
         public string Title { get; set; }
         public List<Quest> Quests { get; set; }
@@ -58,7 +58,7 @@ namespace RuleForge
     }
 
     // Quest
-    class Quest
+    public class Quest
     {
         public enum QuestType
         {

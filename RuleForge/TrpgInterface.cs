@@ -38,7 +38,7 @@ namespace RuleForge
         {
             while (true)
             {
-                // InputAction();
+                InputAction();
                 await Task.Delay(100);
             }
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
-    class PlayerClass
+    public class PlayerClass
     {
         public string ClassName { get; set; }
 
@@ -17,12 +17,12 @@ namespace RuleForge
     }
 
 // 장비창
-    class PlayerEquipments
+    public class PlayerEquipments
     {
         Dictionary<string, Equipment> EquippedItems = new Dictionary<string, Equipment>();
         public PlayerEquipments()
         {
-            
+
         }
 
         public void Equip(Equipment item)
@@ -42,7 +42,7 @@ namespace RuleForge
         }
     }
 
-    class PlayerItemBag
+    public class PlayerItemBag
     {
         public List<Consumable> ConsumableItems { get; set; }
         public List<Equipment> EquipmentItems { get; set; }
@@ -119,7 +119,7 @@ namespace RuleForge
         }
     }
 
-    class PlayerProfile
+    public class PlayerProfile
     {
         public string gender { get; set; }
         public int age { get; set; }
@@ -128,7 +128,7 @@ namespace RuleForge
 
         public string job { get; set; }
 
-        public string backgroundStory { get; set; }   
+        public string backgroundStory { get; set; }
 
         public int PlayerLevel { get; set; }
 
@@ -137,7 +137,7 @@ namespace RuleForge
         }
     }
 
-    class TrpgPlayer : TrpgActor
+    public class TrpgPlayer : TrpgActor
     {
         public PlayerProfile playerProfile = new PlayerProfile();
         public PlayerClass playerClass { get; set; }

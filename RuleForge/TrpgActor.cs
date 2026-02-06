@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
-    class TrpgActor
+    public class TrpgActor
     {
         public string Name { get; set; }
 
