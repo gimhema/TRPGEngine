@@ -7,7 +7,7 @@ namespace RuleForge
     /// 게임의 현재 상태를 나타내는 클래스
     /// 모든 게임 상태 정보를 중앙에서 관리
     /// </summary>
-    public class GameState
+    public class TrpgGameState
     {
         /// <summary>
         /// 게임 씬(화면) 타입
@@ -40,7 +40,7 @@ namespace RuleForge
         /// <summary>
         /// 현재 사용 가능한 선택지 목록
         /// </summary>
-        public List<Choice> AvailableChoices { get; set; }
+        public List<TrpgChoice> AvailableChoices { get; set; }
 
         /// <summary>
         /// 현재 내러티브 텍스트 (게임 상황 설명)
@@ -77,11 +77,11 @@ namespace RuleForge
         /// </summary>
         public Dictionary<string, object> CustomData { get; set; }
 
-        public GameState()
+        public TrpgGameState()
         {
             CurrentScene = SceneType.MainMenu;
             PreviousScene = null;
-            AvailableChoices = new List<Choice>();
+            AvailableChoices = new List<TrpgChoice>();
             NarrativeText = "";
             CurrentPlayer = null;
             CurrentChapter = null;
@@ -115,7 +115,7 @@ namespace RuleForge
         /// <summary>
         /// 선택지 초기화 및 설정
         /// </summary>
-        public void SetChoices(List<Choice> choices)
+        public void SetChoices(List<TrpgChoice> choices)
         {
             AvailableChoices = choices;
         }
@@ -123,7 +123,7 @@ namespace RuleForge
         /// <summary>
         /// 선택지 추가
         /// </summary>
-        public void AddChoice(Choice choice)
+        public void AddChoice(TrpgChoice choice)
         {
             AvailableChoices.Add(choice);
         }
@@ -139,7 +139,7 @@ namespace RuleForge
         /// <summary>
         /// ID로 선택지 찾기
         /// </summary>
-        public Choice? FindChoice(string id)
+        public TrpgChoice? FindChoice(string id)
         {
             return AvailableChoices.Find(c => c.Id == id);
         }
@@ -169,7 +169,7 @@ namespace RuleForge
     /// 선택지 클래스
     /// 플레이어가 선택할 수 있는 옵션 하나를 나타냄
     /// </summary>
-    public class Choice
+    public class TrpgChoice
     {
         /// <summary>
         /// 선택지 식별자 (예: "1", "2", "attack", "flee")
@@ -194,9 +194,9 @@ namespace RuleForge
         /// <summary>
         /// 선택지를 선택했을 때 실행될 액션
         /// </summary>
-        public Action<GameState>? OnSelect { get; set; }
+        public Action<TrpgGameState>? OnSelect { get; set; }
 
-        public Choice(string id, string displayText, Action<GameState>? onSelect = null)
+        public TrpgChoice(string id, string displayText, Action<TrpgGameState>? onSelect = null)
         {
             Id = id;
             DisplayText = displayText;
@@ -205,7 +205,7 @@ namespace RuleForge
             OnSelect = onSelect;
         }
 
-        public Choice(string id, string displayText, string description, Action<GameState>? onSelect = null)
+        public TrpgChoice(string id, string displayText, string description, Action<TrpgGameState>? onSelect = null)
         {
             Id = id;
             DisplayText = displayText;
@@ -217,7 +217,7 @@ namespace RuleForge
         /// <summary>
         /// 선택지 실행
         /// </summary>
-        public void Execute(GameState state)
+        public void Execute(TrpgGameState state)
         {
             if (IsEnabled && OnSelect != null)
             {
