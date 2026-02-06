@@ -121,14 +121,14 @@ namespace RuleForge
 
     public class PlayerProfile
     {
-        public string gender { get; set; }
+        public string gender { get; set; } = "Not Specified";
         public int age { get; set; }
 
-        public string personality { get; set; }
+        public string personality { get; set; } = "Neutral";
 
-        public string job { get; set; }
+        public string job { get; set; } = "Adventurer";
 
-        public string backgroundStory { get; set; }
+        public string backgroundStory { get; set; } = "A mysterious past.";
 
         public int PlayerLevel { get; set; }
 

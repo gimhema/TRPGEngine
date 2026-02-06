@@ -23,12 +23,18 @@ internal static class Program
         CurrentGameMode = mode;
     }
 
-    public static void StartGameSingle(string[] args)
+    public static async Task StartGameSingle(string[] args)
     {
-        TrpgGameLogic.Instance.StartGame();
+        var controller = TrpgGameController.Instance;
+        controller.Initialize();
+
+        var gameState = controller.GetGameState();
+        TrpgGameLogic.Instance.InitializeGame(gameState);
+
+        await controller.RunAsync();
     }
 
-    public static async void StartGameMultiHost(string[] args)
+    public static async Task StartGameMultiHost(string[] args)
     {
         var ip = IPAddress.Any;
         var port = 7777;
@@ -65,26 +71,36 @@ internal static class Program
         };
 
         Console.WriteLine($"Listening on {ip}:{port}  (Ctrl+C to stop)");
-        await server.RunAsync(cts.Token);
-        Console.WriteLine("Server stopped.");
 
-        TrpgGameLogic.Instance.StartGame();
+        // TODO: TCP 서버와 GameController 통합 필요
+        var controller = TrpgGameController.Instance;
+        controller.Initialize();
+        var gameState = controller.GetGameState();
+        TrpgGameLogic.Instance.InitializeGame(gameState);
+
+        // 서버와 게임 루프를 동시에 실행
+        var serverTask = server.RunAsync(cts.Token);
+        var gameTask = controller.RunAsync(cts.Token);
+
+        await Task.WhenAny(serverTask, gameTask);
+        Console.WriteLine("Server or game stopped.");
     }
 
-    public static void GameStart(string[] args)
+    public static async Task GameStart(string[] args)
     {
         switch(CurrentGameMode)
         {
             case GameMode.SINGLE:
                 // Start single-player game logic
-                StartGameSingle(args);
+                await StartGameSingle(args);
                 break;
             case GameMode.MULTI_HOST:
                 // Start multi-player host game logic
-                StartGameMultiHost(args);
+                await StartGameMultiHost(args);
                 break;
             case GameMode.MULTI_CLIENT:
                 // Start multi-player client game logic
+                Console.WriteLine("Multi-player client mode not implemented yet.");
                 break;
             default:
                 throw new InvalidOperationException("Game mode not selected.");
@@ -102,32 +118,25 @@ internal static class Program
     {
         GameStartPreprocess();
 
-        await TrpgInterface.Instance.InputSpin();
-
-
         Console.WriteLine("Select Game Mode: 1) Single Player  2) Multi Player Host  3) Multi Player Client");
         var input = Console.ReadLine() ?? "";
+
         switch (input)
         {
             case "1":
                 SelectGameMode(GameMode.SINGLE);
-                StartGameSingle(args);
                 break;
             case "2":
                 SelectGameMode(GameMode.MULTI_HOST);
-                StartGameMultiHost(args);
                 break;
             case "3":
                 SelectGameMode(GameMode.MULTI_CLIENT);
-                // StartGameMultiClient(args); // Implement this method as needed
                 break;
             default:
                 Console.WriteLine("Invalid selection. Exiting.");
-                break;
+                return;
         }
 
-        GameStart(args);
-
-
+        await GameStart(args);
     }
 }

@@ -6,6 +6,15 @@ using System.Threading.Tasks;
 
 namespace RuleForge
 {
+    /// <summary>
+    /// [DEPRECATED] 이 클래스는 더 이상 사용되지 않습니다.
+    /// 대신 다음을 사용하세요:
+    /// - TrpgGameController: 게임 루프 관리
+    /// - TrpgInputHandler: 입력 처리
+    /// - TrpgRenderer: 화면 출력
+    /// - TrpgGameState: 게임 상태 관리
+    /// </summary>
+    [Obsolete("Use TrpgGameController, TrpgInputHandler, and TrpgRenderer instead")]
     class TrpgInterface
     {
         private static TrpgInterface? _instance;
@@ -84,7 +93,8 @@ namespace RuleForge
                 case "1":
                     Console.WriteLine("Starting new game...");
                     _currentActivity = new Activity(Activity.ActivityType.Exploration);
-                    TrpgGameLogic.Instance.StartGame();
+                    // DEPRECATED: Use TrpgGameController instead
+                    // TrpgGameLogic.Instance.StartGame();
                     break;
                 case "2":
                     Console.WriteLine("Loading saved game...");
