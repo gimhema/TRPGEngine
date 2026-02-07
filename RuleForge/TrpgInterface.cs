@@ -19,11 +19,18 @@ namespace RuleForge
     {
         private static TrpgInterface? _instance;
         private Activity? _currentActivity;
+        private TrpgPlayer? _currentPlayer;
 
         public Activity? CurrentActivity
         {
             get { return _currentActivity; }
             set { _currentActivity = value; }
+        }
+
+        public TrpgPlayer? CurrentPlayer
+        {
+            get { return _currentPlayer; }
+            set { _currentPlayer = value; }
         }
 
         public static TrpgInterface Instance
@@ -415,27 +422,54 @@ namespace RuleForge
         /// </summary>
         private void SellItem()
         {
-            Console.WriteLine("1. Iron Sword - 200 Gold");
-            Console.WriteLine("2. Leather Armor - 150 Gold");
-            Console.WriteLine("3. Back");
-            Console.Write("Select item to sell: ");
+            if (_currentPlayer == null)
+            {
+                Console.WriteLine("플레이어가 설정되지 않았습니다.");
+                return;
+            }
+
+            var equipments = _currentPlayer.playerItemBag.EquipmentItems;
+
+            if (equipments.Count == 0)
+            {
+                Console.WriteLine("판매할 수 있는 장비가 없습니다.");
+                return;
+            }
+
+            Console.WriteLine("\n===== 판매 가능한 장비 =====");
+            for (int i = 0; i < equipments.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {equipments[i].ItemName} - {equipments[i].ItemDescription}");
+            }
+            Console.WriteLine($"{equipments.Count + 1}. 돌아가기");
+            Console.Write("판매할 장비 선택: ");
 
             string input = Console.ReadLine() ?? "";
 
-            switch (input)
+            if (int.TryParse(input, out int selection))
             {
-                case "1":
-                    Console.WriteLine("Sold Iron Sword!");
-                    break;
-                case "2":
-                    Console.WriteLine("Sold Leather Armor!");
-                    break;
-                case "3":
+                if (selection == equipments.Count + 1)
+                {
                     // 돌아가기
-                    break;
-                default:
-                    Console.WriteLine("Invalid item. Please try again.");
-                    break;
+                    return;
+                }
+
+                if (selection > 0 && selection <= equipments.Count)
+                {
+                    int index = selection - 1;
+                    var soldItem = equipments[index];
+                    _currentPlayer.playerItemBag.DropEquipment(index);
+                    Console.WriteLine($"{soldItem.ItemName}을(를) 판매했습니다!");
+                    // TODO: 골드 추가 로직 필요
+                }
+                else
+                {
+                    Console.WriteLine("잘못된 선택입니다.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("숫자를 입력해주세요.");
             }
         }
 
@@ -444,27 +478,51 @@ namespace RuleForge
         /// </summary>
         private void UseItem()
         {
-            Console.WriteLine("1. Potion");
-            Console.WriteLine("2. Mana Potion");
-            Console.WriteLine("3. Back");
-            Console.Write("Select item to use: ");
+            if (_currentPlayer == null)
+            {
+                Console.WriteLine("플레이어가 설정되지 않았습니다.");
+                return;
+            }
+
+            var consumables = _currentPlayer.playerItemBag.ConsumableItems;
+
+            if (consumables.Count == 0)
+            {
+                Console.WriteLine("사용할 수 있는 아이템이 없습니다.");
+                return;
+            }
+
+            Console.WriteLine("\n===== 사용 가능한 아이템 =====");
+            for (int i = 0; i < consumables.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {consumables[i].ItemName} (x{consumables[i].Quantity}) - {consumables[i].ItemDescription}");
+            }
+            Console.WriteLine($"{consumables.Count + 1}. 돌아가기");
+            Console.Write("사용할 아이템 선택: ");
 
             string input = Console.ReadLine() ?? "";
 
-            switch (input)
+            if (int.TryParse(input, out int selection))
             {
-                case "1":
-                    Console.WriteLine("Used Potion! HP recovered.");
-                    break;
-                case "2":
-                    Console.WriteLine("Used Mana Potion! Mana recovered.");
-                    break;
-                case "3":
+                if (selection == consumables.Count + 1)
+                {
                     // 돌아가기
-                    break;
-                default:
-                    Console.WriteLine("Invalid item. Please try again.");
-                    break;
+                    return;
+                }
+
+                if (selection > 0 && selection <= consumables.Count)
+                {
+                    int index = selection - 1;
+                    _currentPlayer.playerItemBag.UseConsumable(index);
+                }
+                else
+                {
+                    Console.WriteLine("잘못된 선택입니다.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("숫자를 입력해주세요.");
             }
         }
 
@@ -473,27 +531,88 @@ namespace RuleForge
         /// </summary>
         private void DropItem()
         {
-            Console.WriteLine("1. Damaged Shield");
-            Console.WriteLine("2. Old Map");
-            Console.WriteLine("3. Back");
-            Console.Write("Select item to drop: ");
+            if (_currentPlayer == null)
+            {
+                Console.WriteLine("플레이어가 설정되지 않았습니다.");
+                return;
+            }
+
+            var consumables = _currentPlayer.playerItemBag.ConsumableItems;
+            var equipments = _currentPlayer.playerItemBag.EquipmentItems;
+
+            int totalItems = consumables.Count + equipments.Count;
+
+            if (totalItems == 0)
+            {
+                Console.WriteLine("버릴 수 있는 아이템이 없습니다.");
+                return;
+            }
+
+            Console.WriteLine("\n===== 인벤토리 =====");
+            int displayIndex = 1;
+
+            // 소비 아이템 표시
+            if (consumables.Count > 0)
+            {
+                Console.WriteLine("[소비 아이템]");
+                for (int i = 0; i < consumables.Count; i++)
+                {
+                    Console.WriteLine($"{displayIndex}. {consumables[i].ItemName} (x{consumables[i].Quantity}) - {consumables[i].ItemDescription}");
+                    displayIndex++;
+                }
+            }
+
+            // 장비 아이템 표시
+            if (equipments.Count > 0)
+            {
+                Console.WriteLine("[장비]");
+                for (int i = 0; i < equipments.Count; i++)
+                {
+                    Console.WriteLine($"{displayIndex}. {equipments[i].ItemName} - {equipments[i].ItemDescription}");
+                    displayIndex++;
+                }
+            }
+
+            Console.WriteLine($"{displayIndex}. 돌아가기");
+            Console.Write("버릴 아이템 선택: ");
 
             string input = Console.ReadLine() ?? "";
 
-            switch (input)
+            if (int.TryParse(input, out int selection))
             {
-                case "1":
-                    Console.WriteLine("Dropped Damaged Shield.");
-                    break;
-                case "2":
-                    Console.WriteLine("Dropped Old Map.");
-                    break;
-                case "3":
+                if (selection == displayIndex)
+                {
                     // 돌아가기
-                    break;
-                default:
-                    Console.WriteLine("Invalid item. Please try again.");
-                    break;
+                    return;
+                }
+
+                if (selection > 0 && selection < displayIndex)
+                {
+                    // 소비 아이템 범위인지 확인
+                    if (selection <= consumables.Count)
+                    {
+                        int index = selection - 1;
+                        var droppedItem = consumables[index];
+                        _currentPlayer.playerItemBag.DropConsumable(index);
+                        Console.WriteLine($"{droppedItem.ItemName}을(를) 버렸습니다.");
+                    }
+                    // 장비 아이템 범위인지 확인
+                    else
+                    {
+                        int index = selection - consumables.Count - 1;
+                        var droppedItem = equipments[index];
+                        _currentPlayer.playerItemBag.DropEquipment(index);
+                        Console.WriteLine($"{droppedItem.ItemName}을(를) 버렸습니다.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("잘못된 선택입니다.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("숫자를 입력해주세요.");
             }
         }
     }
