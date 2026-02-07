@@ -71,6 +71,27 @@ namespace RuleForge
         {
             basicInfo = new WorldBasicInfo();
         }
+
+        public void SetWorldInfo(string _name, string _desc)
+        {
+            basicInfo.Name = _name;
+            basicInfo.Description = _desc;
+        }
+
+        public string GetName()
+        {
+            return basicInfo.Name;
+        }
+
+        public string GetDescription()
+        {
+            return basicInfo.Description;
+        }
+
+        public void Action()
+        {
+            // 여기에 상속받는 자식 클래스 별로 행동할수있게끔
+        } 
     }
 
     public class Village : WorldUnit
