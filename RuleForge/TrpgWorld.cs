@@ -38,6 +38,7 @@ namespace RuleForge
     public class World
     {
         public WorldBasicInfo basicInfo;
+        public Dictionary<string, WorldUnit> units;
 
         public World()
         {
@@ -74,24 +75,37 @@ namespace RuleForge
 
     public class Village : WorldUnit
     {
-
+        public Village()
+        {
+            
+        }
 
     }
 
     public class Establishment : WorldUnit
     {
         
+        public Establishment()
+        {
+            
+        }
         
     }
 
     public class Field : WorldUnit
     {
-        
+        public Field()
+        {
+            
+        }
     }
 
     public class Dungeon : WorldUnit
     {
-        
+        public Dungeon()
+        {
+            
+        }        
 
     }
 
