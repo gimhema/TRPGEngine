@@ -104,11 +104,14 @@ namespace RuleForge
                     // TrpgGameLogic.Instance.StartGame();
                     break;
                 case "2":
-                    Console.WriteLine("Loading saved game...");
-                    _currentActivity = new Activity(Activity.ActivityType.Exploration);
+                    // TODO: 저장/로드 시스템이 구현되지 않았습니다.
+                    // 필요한 기반 작업: 게임 상태 역직렬화, 세이브 파일 검증, 버전 호환성 처리
+                    Console.WriteLine("불러오기 시스템이 아직 구현되지 않았습니다.");
                     break;
                 case "3":
-                    Console.WriteLine("Opening settings...");
+                    // TODO: 설정 시스템이 구현되지 않았습니다.
+                    // 필요한 기반 작업: 옵션 관리 (음량, 난이도, 키 설정 등)
+                    Console.WriteLine("설정 메뉴가 아직 구현되지 않았습니다.");
                     break;
                 case "4":
                     Console.WriteLine("Exiting game...");
@@ -125,43 +128,19 @@ namespace RuleForge
         /// </summary>
         private void HandleBattleInput()
         {
-            Console.WriteLine("\n===== BATTLE ACTION =====");
-            Console.WriteLine("1. Attack");
-            Console.WriteLine("2. Defend");
-            Console.WriteLine("3. Use Skill");
-            Console.WriteLine("4. Use Item");
-            Console.WriteLine("5. Escape");
-            Console.Write("Select an action: ");
+            // TODO: 전투 시스템이 구현되지 않았습니다.
+            // 필요한 기반 작업:
+            // 1. Battle/Combat 클래스 생성 (전투 상태 관리)
+            // 2. Enemy/Monster 클래스 생성
+            // 3. 전투 액션 시스템 (Attack, Defend, Skill 사용 로직)
+            // 4. 턴제/실시간 전투 시스템 결정
+            // 5. 전투 결과 처리 (승리/패배, 경험치, 전리품)
 
-            string input = Console.ReadLine() ?? "";
+            Console.WriteLine("전투 시스템이 아직 구현되지 않았습니다.");
 
-            switch (input)
-            {
-                case "1":
-                    Console.WriteLine("Player uses Attack!");
-                    ExecuteAction("Attack");
-                    break;
-                case "2":
-                    Console.WriteLine("Player takes a defensive stance!");
-                    ExecuteAction("Defend");
-                    break;
-                case "3":
-                    Console.WriteLine("Opening skill menu...");
-                    SelectSkill();
-                    break;
-                case "4":
-                    Console.WriteLine("Opening item menu...");
-                    HandleInventoryInput();
-                    break;
-                case "5":
-                    Console.WriteLine("Attempting to escape from battle...");
-                    // 도망치기 성공 시 Exploration으로 전환
-                    _currentActivity = new Activity(Activity.ActivityType.Exploration);
-                    break;
-                default:
-                    Console.WriteLine("Invalid action. Please try again.");
-                    break;
-            }
+            // 기존 하드코딩 로직은 제거됨
+            // var battleActions = battleSystem.GetAvailableActions(_currentPlayer);
+            // ...
         }
 
         /// <summary>
@@ -189,11 +168,14 @@ namespace RuleForge
                     HandleInventoryInput();
                     break;
                 case "3":
-                    Console.WriteLine("Resting...");
-                    // 플레이어 체력 회복 등의 로직
+                    // TODO: Rest 시스템이 구현되지 않았습니다.
+                    // 필요한 기반 작업: HP/MP 회복 로직, 시간 경과 시스템, 안전 지역 확인
+                    Console.WriteLine("휴식 시스템이 아직 구현되지 않았습니다.");
                     break;
                 case "4":
-                    Console.WriteLine("Game saved.");
+                    // TODO: 저장/로드 시스템이 구현되지 않았습니다.
+                    // 필요한 기반 작업: 게임 상태 직렬화, 파일 I/O, 세이브 슬롯 관리
+                    Console.WriteLine("저장 시스템이 아직 구현되지 않았습니다.");
                     break;
                 case "5":
                     _currentActivity = null;
@@ -222,8 +204,9 @@ namespace RuleForge
             switch (input)
             {
                 case "1":
-                    Console.WriteLine("NPC starts talking...");
-                    ExecuteAction("Talk");
+                    // TODO: NPC 대화 시스템이 구현되지 않았습니다.
+                    // 필요한 기반 작업: NPC 클래스, 대화 트리, 선택지 분기, LLM 통합
+                    Console.WriteLine("NPC 대화 시스템이 아직 구현되지 않았습니다.");
                     break;
                 case "2":
                     Console.WriteLine("Opening shop...");
@@ -233,8 +216,10 @@ namespace RuleForge
                     HandleInventoryInput();
                     break;
                 case "4":
-                    Console.WriteLine("Quest accepted!");
-                    ExecuteAction("AcceptQuest");
+                    // TODO: 퀘스트 수락 시스템이 구현되지 않았습니다.
+                    // 필요한 기반 작업: 현재 NPC의 퀘스트 목록 조회, 퀘스트 수락 조건 확인
+                    // 참고: Quest 클래스는 이미 TrpgGameLogic.cs에 존재함
+                    Console.WriteLine("퀘스트 수락 시스템이 아직 구현되지 않았습니다.");
                     break;
                 case "5":
                     _currentActivity = new Activity(Activity.ActivityType.Exploration);
@@ -325,35 +310,18 @@ namespace RuleForge
 
         private void SelectLocation()
         {
-            Console.WriteLine("1. Dungeon");
-            Console.WriteLine("2. Village");
-            Console.WriteLine("3. Forest");
-            Console.WriteLine("4. Back");
-            Console.Write("Select location: ");
+            // TODO: 월드/위치 시스템이 구현되지 않았습니다.
+            // 필요한 기반 작업:
+            // 1. Location 클래스 생성 (위치 이름, 설명, 접근 가능 여부)
+            // 2. World/Map 시스템 (위치 간 연결 관계, 이동 조건)
+            // 3. 위치별 Activity 타입 매핑 (Dungeon -> Combat, Village -> Social 등)
+            // 4. Chapter/Quest 시스템과 연동 (특정 위치 잠금/해금)
 
-            string input = Console.ReadLine() ?? "";
+            Console.WriteLine("월드 탐험 시스템이 아직 구현되지 않았습니다.");
 
-            switch (input)
-            {
-                case "1":
-                    Console.WriteLine("Entering dungeon...");
-                    _currentActivity = new Activity(Activity.ActivityType.Combat);
-                    break;
-                case "2":
-                    Console.WriteLine("Arriving at village...");
-                    _currentActivity = new Activity(Activity.ActivityType.Social);
-                    break;
-                case "3":
-                    Console.WriteLine("Exploring forest...");
-                    // 모험 계속
-                    break;
-                case "4":
-                    // 돌아가기
-                    break;
-                default:
-                    Console.WriteLine("Invalid location. Please try again.");
-                    break;
-            }
+            // 기존 하드코딩 로직은 제거됨
+            // var availableLocations = worldSystem.GetAccessibleLocations();
+            // ...
         }
 
         /// <summary>
@@ -361,31 +329,19 @@ namespace RuleForge
         /// </summary>
         private void SelectSkill()
         {
-            Console.WriteLine("Available Skills:");
-            Console.WriteLine("1. Fireball");
-            Console.WriteLine("2. Heal");
-            Console.WriteLine("3. Back");
-            Console.Write("Select skill: ");
+            // TODO: 스킬 시스템이 구현되지 않았습니다.
+            // 필요한 기반 작업:
+            // 1. Skill 클래스 생성 (스킬 이름, 설명, 효과, MP/리소스 소모량)
+            // 2. Player에 스킬 목록 추가 (List<Skill> PlayerSkills)
+            // 3. 스킬 사용 로직 (타겟 선택, 효과 적용, 리소스 소모)
+            // 4. 직업별/레벨별 스킬 습득 시스템
 
-            string input = Console.ReadLine() ?? "";
+            Console.WriteLine("스킬 시스템이 아직 구현되지 않았습니다.");
 
-            switch (input)
-            {
-                case "1":
-                    Console.WriteLine("Using Fireball!");
-                    ExecuteAction("Fireball");
-                    break;
-                case "2":
-                    Console.WriteLine("Using Heal!");
-                    ExecuteAction("Heal");
-                    break;
-                case "3":
-                    // 돌아가기
-                    break;
-                default:
-                    Console.WriteLine("Invalid skill. Please try again.");
-                    break;
-            }
+            // 기존 하드코딩 로직은 제거됨
+            // if (_currentPlayer == null) { ... }
+            // var skills = _currentPlayer.GetAvailableSkills();
+            // ...
         }
 
         /// <summary>
@@ -393,28 +349,18 @@ namespace RuleForge
         /// </summary>
         private void BuyItem()
         {
-            Console.WriteLine("1. Potion - 50 Gold");
-            Console.WriteLine("2. Mana Potion - 80 Gold");
-            Console.WriteLine("3. Back");
-            Console.Write("Select item: ");
+            // TODO: 상점 시스템이 구현되지 않았습니다.
+            // 필요한 기반 작업:
+            // 1. Shop 클래스 생성 (상점 아이템 목록, 가격 관리)
+            // 2. Player에 Gold/Currency 시스템 추가
+            // 3. 상점별 판매 아이템 목록 데이터 구조
 
-            string input = Console.ReadLine() ?? "";
+            Console.WriteLine("상점 시스템이 아직 구현되지 않았습니다.");
 
-            switch (input)
-            {
-                case "1":
-                    Console.WriteLine("Bought Potion!");
-                    break;
-                case "2":
-                    Console.WriteLine("Bought Mana Potion!");
-                    break;
-                case "3":
-                    // 돌아가기
-                    break;
-                default:
-                    Console.WriteLine("Invalid item. Please try again.");
-                    break;
-            }
+            // 기존 하드코딩 로직은 제거됨
+            // if (_currentPlayer == null) { ... }
+            // var shopItems = shopSystem.GetAvailableItems();
+            // ...
         }
 
         /// <summary>
