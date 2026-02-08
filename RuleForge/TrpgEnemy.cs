@@ -10,12 +10,24 @@ namespace RuleForge
     public class TrpgEnemy : TrpgActor
     {
         
+        public List<TrpgItem> BattleReward;
+
         public TrpgEnemy(string name, string description = "", string className = "") : base(name, description)
         {
 
         }
 
         public void EnemyAction()
+        {
+            
+        }
+
+        public void GiveReward()
+        {
+            
+        }
+
+        public void Death()
         {
             
         }
@@ -27,6 +39,7 @@ namespace RuleForge
         public Queue<TrpgEnemy> EncounterQueue;
         public int RemainingEnemies => EncounterQueue.Count;
         public bool HasEnemies => EncounterQueue.Count > 0;
+
         public TrpgEnemyGroup()
         {
             EncounterQueue = new Queue<TrpgEnemy>();

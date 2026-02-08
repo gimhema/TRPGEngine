@@ -135,17 +135,18 @@ namespace RuleForge
 
     public class Dungeon : WorldUnit
     {
+
         public bool IsClear {get; set;} = false;
 
         public List<TrpgEnemy> EnemyList;
         public TrpgEnemyGroup EnemyGroupInstance;
 
-        public List<TrpgItem> RewardList;
+        public List<TrpgItem> ClearReward;
 
         public Dungeon()
         {
             EnemyGroupInstance = new TrpgEnemyGroup();
-            RewardList = new List<TrpgItem>();
+            ClearReward = new List<TrpgItem>();
         }        
 
         protected override void Action()
@@ -170,7 +171,7 @@ namespace RuleForge
 
         public void GiveReward()
         {
-            
+            // 플레이어에게 ClearReward를 지급함
         }
 
         public void Clear()
