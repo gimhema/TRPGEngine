@@ -165,6 +165,23 @@ namespace RuleForge
 
     public class Village : WorldUnit
     {
+        public class Establishment
+        {
+            public string Name {get; set;} = "DEFAULT";
+            public Establishment()
+            {
+            
+            }
+
+            public void Action()
+            {
+                
+            }
+
+        }
+
+        public Dictionary<string, Establishment> establishments = new Dictionary<string, Establishment>();
+
         public Village()
         {
             
@@ -177,20 +194,6 @@ namespace RuleForge
 
     }
 
-    public class Establishment : WorldUnit
-    {
-        
-        public Establishment()
-        {
-            
-        }
-        
-        protected override void Action()
-        {
-            throw new NotImplementedException();
-        }
-
-    }
 
 public class Field : WorldUnit
 {
