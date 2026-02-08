@@ -151,6 +151,15 @@ namespace RuleForge
 
         protected override void Action()
         {
+            // 던전 루프에 진입한다.
+
+            // Exploration()를 수행한다.
+
+            // 몬스터와 조우하게되면 EncountEnemy를 실행한다.
+
+            // 던전의 모든 몬스터들을 쓰러뜨리면 Clear, 진행도중 죽는다면 Failed를 실행한다.
+
+
             throw new NotImplementedException();
         }
 
@@ -160,6 +169,11 @@ namespace RuleForge
             {
                 EnemyGroupInstance.AddEnemy(enemy);
             }
+        }
+
+        public void Exploration()
+        {
+            
         }
 
 
@@ -174,9 +188,18 @@ namespace RuleForge
             // 플레이어에게 ClearReward를 지급함
         }
 
+        public void Failed()
+        {
+            // 던전 실패 조건은 플레이어의 죽음이다.
+
+            // 플레이어는 필드로 나가게 된다.
+        }
+
         public void Clear()
         {
-            
+            // 모든 몬스터들을 클리어하면 클리어 보상을 지급한다.
+
+            // 플레이어는 필드로 나가게 된다.
         }
 
     }
