@@ -135,9 +135,16 @@ namespace RuleForge
 
     public class Dungeon : WorldUnit
     {
+        public bool IsClear {get; set;} = false;
+
+        public List<TrpgActor> Enemys;
+
+        public List<TrpgItem> RewardList;
+
         public Dungeon()
         {
-            
+            Enemys = new List<TrpgActor>();
+            RewardList = new List<TrpgItem>();
         }        
 
         protected override void Action()
@@ -145,9 +152,21 @@ namespace RuleForge
             throw new NotImplementedException();
         }
 
+        public void EncountEnemy()
+        {
+            
+        }
+
+        public void GiveReward()
+        {
+            
+        }
+
+        public void Clear()
+        {
+            
+        }
+
     }
-
-
-
 
 }
