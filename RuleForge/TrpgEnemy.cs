@@ -24,12 +24,18 @@ namespace RuleForge
 
         public void GiveReward()
         {
-            
+            // 플레이어에게 보상을 지급한다.
+
+            // 이때 랜덤으로 지급을 하는데
+            // 1 ~ BattleReward.size() 까지 보상의 가짓수를 정할수있다.
+            // 보상의 가짓수만큼 랜덤하게 돌린다.
+            // 이때 루프내에서 인덱스도 랜덤하게 돌려서 지급한다.
+
         }
 
         public void Death()
         {
-            
+            // GiveReward()를 호출해서 플레이어에게 보상을 지급한다.
         }
 
     }
