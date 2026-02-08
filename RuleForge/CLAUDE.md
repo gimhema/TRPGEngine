@@ -165,6 +165,45 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 모든 아이템 관련 로직은 하드코딩 없이 실제 플레이어 데이터를 기반으로 동작합니다.
 
+### 월드/던전 시스템 (부분 구현) 🟡
+**위치**: [TrpgWorld.cs](TrpgWorld.cs), [TrpgEnemy.cs](TrpgEnemy.cs)
+
+월드 시스템의 기본 구조와 던전 시스템이 구현되었습니다:
+
+**월드 구조**:
+- **World**: 월드 전체를 관리하는 컨테이너
+- **WorldUnit**: 모든 월드 요소의 추상 기본 클래스
+  - **Village**: 마을 (Establishment 포함)
+  - **Establishment**: 상호작용 가능한 건물 (상점, 길드, 여관 등)
+  - **Field**: 지역 간 연결 영역
+  - **Dungeon**: 적 인카운터 및 보상이 있는 던전
+
+**적 및 인카운터 시스템**:
+- **TrpgEnemy** ([TrpgEnemy.cs:10](TrpgEnemy.cs#L10))
+  - `BattleReward`: 전투 보상 아이템 리스트
+  - `GiveReward()`: 랜덤 개수의 보상을 랜덤 선택하여 지급
+  - `Death()`: 적 처치 시 보상 지급 처리
+
+- **TrpgEnemyGroup** ([TrpgEnemy.cs:87](TrpgEnemy.cs#L87))
+  - `Queue<TrpgEnemy>` 기반 순차 인카운터 시스템
+  - `Encount()`: 다음 적을 Dequeue하여 반환
+  - 중복 없는 순차적 적 등장 보장
+
+**던전 시스템**:
+- **Dungeon.MakeDungeon()**: EnemyList를 EnemyGroupInstance에 등록
+- **Dungeon.Exploration()**: 던전 탐험 로직 (TODO: 이벤트, 함정 등 확장 필요)
+- **Dungeon.EncountEnemy()**: 적 인카운터 처리
+- **Dungeon.GiveReward()**: 던전 클리어 보상 지급
+- **Dungeon.Clear()**: 던전 클리어 처리 및 보상 지급
+- **Dungeon.Failed()**: 던전 실패 처리
+- **Dungeon.Action()**: 던전 메인 루프 (탐험 → 인카운터 → 클리어/실패)
+
+**미완성 부분**:
+- 전투 시스템 통합 필요 (현재는 구조만 존재)
+- Village, Field, Establishment의 Action() 메소드 미구현
+- World 간 이동 및 연결 관계 미구현
+- Chapter/Quest와의 연동 미구현
+
 ## 미구현 시스템 (우선순위별)
 
 ### 핵심 게임플레이 시스템
@@ -190,13 +229,19 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 **참고**: [TrpgInterface.cs:338-353](TrpgInterface.cs#L338-L353) SelectSkill에 TODO 주석 존재
 
-#### 3. 월드/위치 시스템 🔴
+#### 3. 월드/위치 시스템 🟡 (부분 구현)
+**완료된 작업**:
+- ✅ World, WorldUnit 기본 구조 ([TrpgWorld.cs](TrpgWorld.cs))
+- ✅ Dungeon 클래스 및 던전 루프 구현
+- ✅ TrpgEnemy 및 TrpgEnemyGroup (Queue 기반 인카운터)
+- ✅ Village, Field, Establishment 클래스 골격
+
 **필요 작업**:
-- Location 클래스 생성 (이름, 설명, 접근 가능 여부, 위험도)
 - World/Map 시스템 (위치 간 연결 관계, 이동 조건, 거리)
+- Village, Field, Establishment의 Action() 메소드 구현
 - 위치별 Activity 타입 매핑 (Dungeon → Combat, Village → Social)
 - Chapter/Quest 시스템과 연동 (특정 위치 잠금/해금)
-- 지역별 적 출현 테이블
+- 전투 시스템과 던전 통합
 
 **참고**: [TrpgInterface.cs:319-333](TrpgInterface.cs#L319-L333) SelectLocation에 TODO 주석 존재
 
