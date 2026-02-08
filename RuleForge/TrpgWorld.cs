@@ -63,7 +63,7 @@ namespace RuleForge
         
     }
 
-    public class WorldUnit
+    public abstract class WorldUnit
     {
         public WorldBasicInfo basicInfo;
 
@@ -88,10 +88,7 @@ namespace RuleForge
             return basicInfo.Description;
         }
 
-        public void Action()
-        {
-            // 여기에 상속받는 자식 클래스 별로 행동할수있게끔
-        } 
+        protected abstract void Action();
     }
 
     public class Village : WorldUnit
@@ -99,6 +96,11 @@ namespace RuleForge
         public Village()
         {
             
+        }
+
+        protected override void Action()
+        {
+            throw new NotImplementedException();
         }
 
     }
@@ -111,6 +113,11 @@ namespace RuleForge
             
         }
         
+        protected override void Action()
+        {
+            throw new NotImplementedException();
+        }
+
     }
 
     public class Field : WorldUnit
@@ -118,6 +125,11 @@ namespace RuleForge
         public Field()
         {
             
+        }
+
+        protected override void Action()
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -127,6 +139,11 @@ namespace RuleForge
         {
             
         }        
+
+        protected override void Action()
+        {
+            throw new NotImplementedException();
+        }
 
     }
 
