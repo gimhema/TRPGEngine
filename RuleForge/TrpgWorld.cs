@@ -120,18 +120,46 @@ namespace RuleForge
 
     }
 
-    public class Field : WorldUnit
+public class Field : WorldUnit
+{
+    public List<string> GatherableItems { get; set; }  // 채집 가능한 아이템 ID 목록    
+    public Field()
     {
-        public Field()
+        GatherableItems = new List<string>();
+    }
+    
+    protected override void Action()
+    {
+        Console.WriteLine($"\n===== {basicInfo.Name} =====");
+        Console.WriteLine(basicInfo.Description);
+        
+        bool exploring = true;
+        while (exploring)
         {
+            Console.WriteLine("\n[1] 채집하기");
+            Console.WriteLine("[2] 주변 탐색");
+            Console.WriteLine("[3] 다른 장소로 이동");
+            Console.WriteLine("[4] 돌아가기");
             
-        }
-
-        protected override void Action()
-        {
-            throw new NotImplementedException();
+            // TODO: 입력 처리 및 각 액션 구현
+            // Gathering(), Explore(), Navigate() 등
         }
     }
+    
+    public void Gathering()
+    {
+        // 채집 로직
+        Console.WriteLine("주변을 살펴보며 유용한 것들을 찾습니다...");
+        // TODO: GatherableItems에서 랜덤 아이템 획득
+    }
+    
+    public void Explore()
+    {
+        // 탐험 로직
+        Console.WriteLine("주변을 탐험합니다...");
+        // TODO: 랜덤 이벤트, 아이템 발견, 적 조우 등
+    }
+}
 
     public class Dungeon : WorldUnit
     {
