@@ -65,11 +65,15 @@ namespace RuleForge
 
     public abstract class WorldUnit
     {
+        public string Id { get; set; }
         public WorldBasicInfo basicInfo;
+        public List<WorldUnit> ConnectedLocations { get; set; }
 
         public WorldUnit()
         {
+            Id = Guid.NewGuid().ToString();
             basicInfo = new WorldBasicInfo();
+            ConnectedLocations = new List<WorldUnit>();
         }
 
         public void SetWorldInfo(string _name, string _desc)
@@ -86,6 +90,74 @@ namespace RuleForge
         public string GetDescription()
         {
             return basicInfo.Description;
+        }
+
+        /// <summary>
+        /// 한 방향 연결 추가 (this → destination)
+        /// </summary>
+        public void AddConnection(WorldUnit destination)
+        {
+            if (destination == null)
+            {
+                Console.WriteLine("연결할 목적지가 null입니다.");
+                return;
+            }
+
+            if (destination == this)
+            {
+                Console.WriteLine("자기 자신과는 연결할 수 없습니다.");
+                return;
+            }
+
+            if (ConnectedLocations.Contains(destination))
+            {
+                Console.WriteLine($"{destination.GetName()}은(는) 이미 연결되어 있습니다.");
+                return;
+            }
+
+            ConnectedLocations.Add(destination);
+        }
+
+        /// <summary>
+        /// 양방향 연결 추가 (this ↔ destination)
+        /// </summary>
+        public void AddBidirectionalConnection(WorldUnit destination)
+        {
+            AddConnection(destination);
+            destination.AddConnection(this);
+        }
+
+        /// <summary>
+        /// 연결 제거
+        /// </summary>
+        public void RemoveConnection(WorldUnit destination)
+        {
+            ConnectedLocations.Remove(destination);
+        }
+
+        /// <summary>
+        /// 양방향 연결 제거
+        /// </summary>
+        public void RemoveBidirectionalConnection(WorldUnit destination)
+        {
+            RemoveConnection(destination);
+            destination.RemoveConnection(this);
+        }
+
+        /// <summary>
+        /// 특정 위치와 연결되어 있는지 확인
+        /// </summary>
+        public bool IsConnectedTo(WorldUnit destination)
+        {
+            return ConnectedLocations.Contains(destination);
+        }
+
+        /// <summary>
+        /// 연결된 위치 이름 목록 반환
+        /// </summary>
+        public List<string> GetConnectedLocationNames()
+        {
+            return ConnectedLocations.Select(loc => loc.GetName()).ToList();
         }
 
         protected abstract void Action();
