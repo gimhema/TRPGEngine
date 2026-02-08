@@ -137,13 +137,14 @@ namespace RuleForge
     {
         public bool IsClear {get; set;} = false;
 
-        public TrpgEnemyGroup EnemyGroup;
+        public List<TrpgEnemy> EnemyList;
+        public TrpgEnemyGroup EnemyGroupInstance;
 
         public List<TrpgItem> RewardList;
 
         public Dungeon()
         {
-            EnemyGroup = new TrpgEnemyGroup();
+            EnemyGroupInstance = new TrpgEnemyGroup();
             RewardList = new List<TrpgItem>();
         }        
 
@@ -152,9 +153,19 @@ namespace RuleForge
             throw new NotImplementedException();
         }
 
+        public void MakeDungeon()
+        {
+            foreach(var enemy in EnemyList)
+            {
+                EnemyGroupInstance.AddEnemy(enemy);
+            }
+        }
+
+
         public void EncountEnemy()
         {
-            
+            var _enemy = EnemyGroupInstance.Encount();
+            _enemy.EnemyAction();
         }
 
         public void GiveReward()

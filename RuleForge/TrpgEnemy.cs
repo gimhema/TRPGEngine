@@ -15,6 +15,11 @@ namespace RuleForge
 
         }
 
+        public void EnemyAction()
+        {
+            
+        }
+
     }
 
     public class TrpgEnemyGroup
@@ -43,6 +48,7 @@ namespace RuleForge
                 return EncounterQueue.Dequeue();
             return null;
         }
+
     }
 
 }
