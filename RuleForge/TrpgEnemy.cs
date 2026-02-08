@@ -19,10 +19,29 @@ namespace RuleForge
 
     public class TrpgEnemyGroup
     {
-        public List<TrpgEnemy> Enemys;
+        public Queue<TrpgEnemy> EncounterQueue;
+        public int RemainingEnemies => EncounterQueue.Count;
+        public bool HasEnemies => EncounterQueue.Count > 0;
         public TrpgEnemyGroup()
         {
-            Enemys = new List<TrpgEnemy>();
+            EncounterQueue = new Queue<TrpgEnemy>();
+        }
+
+        public void AddEnemy(TrpgEnemy enemy)
+        {
+            EncounterQueue.Enqueue(enemy);
+        }
+
+        public void Clear()
+        {
+            EncounterQueue.Clear();
+        }
+
+        public TrpgEnemy? Encount()
+        {
+            if (EncounterQueue.Count > 0)
+                return EncounterQueue.Dequeue();
+            return null;
         }
     }
 
