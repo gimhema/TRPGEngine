@@ -137,13 +137,13 @@ namespace RuleForge
     {
         public bool IsClear {get; set;} = false;
 
-        public List<TrpgActor> Enemys;
+        public TrpgEnemyGroup EnemyGroup;
 
         public List<TrpgItem> RewardList;
 
         public Dungeon()
         {
-            Enemys = new List<TrpgActor>();
+            EnemyGroup = new TrpgEnemyGroup();
             RewardList = new List<TrpgItem>();
         }        
 
