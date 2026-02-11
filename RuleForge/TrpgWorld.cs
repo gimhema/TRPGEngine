@@ -145,6 +145,13 @@ namespace RuleForge
             
         }
 
+        public Establishment SelectEstablishment(int selected)
+        {
+            Establishment selected;
+
+            return selected;
+        }
+
         protected override void Action()
         {
             throw new NotImplementedException();
@@ -196,10 +203,18 @@ namespace RuleForge
 
             // ConnectedUnits의 정보들을 출력해준다.
         }
+        
 
         public void AddWorldUnit(WorldUnit unit)
         {
             ConnectedUnits.Add(unit);
+        }
+
+        public WorldUnit SelectExplore(int selectIdx)
+        {
+            WorldUnit selected;
+
+            return selected;
         }
 
 
