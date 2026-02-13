@@ -63,6 +63,11 @@ namespace RuleForge
         public Quest? CurrentQuest { get; set; }
 
         /// <summary>
+        /// 현재 플레이어가 위치한 월드 유닛 (마을, 필드, 던전 등)
+        /// </summary>
+        public WorldUnit? CurrentLocation { get; set; }
+
+        /// <summary>
         /// 게임 종료 플래그
         /// </summary>
         public bool ShouldExit { get; set; }
@@ -86,6 +91,7 @@ namespace RuleForge
             CurrentPlayer = null;
             CurrentChapter = null;
             CurrentQuest = null;
+            CurrentLocation = null;
             ShouldExit = false;
             IsGameCleared = false;
             CustomData = new Dictionary<string, object>();

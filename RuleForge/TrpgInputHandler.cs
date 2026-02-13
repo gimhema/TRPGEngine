@@ -205,6 +205,11 @@ namespace RuleForge
                 Console.WriteLine($"퀘스트: {state.CurrentQuest.Title}");
             }
 
+            if (state.CurrentLocation != null)
+            {
+                Console.WriteLine($"현재 위치: {state.CurrentLocation.GetName()}");
+            }
+
             Console.WriteLine("================================\n");
         }
 

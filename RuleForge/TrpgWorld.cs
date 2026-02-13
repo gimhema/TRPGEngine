@@ -129,10 +129,20 @@ namespace RuleForge
         }
 
         /// <summary>
-        /// 해당 월드 유닛에 진입했을 때의 동작을 설정한다.
-        /// TrpgGameState에 내러티브와 선택지를 설정하여 게임 루프에서 처리하도록 한다.
+        /// 해당 월드 유닛에 진입했을 때의 동작.
+        /// CurrentLocation을 갱신한 뒤, 하위 클래스의 OnAction()을 호출한다.
         /// </summary>
-        public abstract void Action(TrpgGameState state);
+        public void Action(TrpgGameState state)
+        {
+            state.CurrentLocation = this;
+            OnAction(state);
+        }
+
+        /// <summary>
+        /// 하위 클래스에서 구현할 실제 진입 동작.
+        /// 내러티브와 선택지를 TrpgGameState에 설정한다.
+        /// </summary>
+        protected abstract void OnAction(TrpgGameState state);
     }
 
     public class Village : WorldUnit
@@ -209,7 +219,7 @@ namespace RuleForge
         /// 마을에 진입했을 때의 동작.
         /// 마을 내 시설 목록을 선택지로 보여주고, 시설 선택 또는 돌아가기를 처리한다.
         /// </summary>
-        public override void Action(TrpgGameState state)
+        protected override void OnAction(TrpgGameState state)
         {
             state.NarrativeText = $"===== {GetName()} =====\n{GetDescription()}";
             state.ClearChoices();
@@ -251,7 +261,7 @@ namespace RuleForge
             GatherableItems = new List<string>();
         }
         
-        public override void Action(TrpgGameState state)
+        protected override void OnAction(TrpgGameState state)
         {
             state.NarrativeText = $"===== {basicInfo.Name} =====\n{basicInfo.Description}";
             state.ClearChoices();
@@ -352,7 +362,7 @@ namespace RuleForge
             ClearReward = new List<TrpgItem>();
         }        
 
-        public override void Action(TrpgGameState state)
+        protected override void OnAction(TrpgGameState state)
         {
             state.NarrativeText = $"===== {basicInfo.Name} 진입 =====\n{basicInfo.Description}";
             state.ClearChoices();
