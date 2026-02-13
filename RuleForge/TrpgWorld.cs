@@ -246,11 +246,9 @@ namespace RuleForge
     public class Field : WorldUnit
     {
         public List<string> GatherableItems { get; set; }  // 채집 가능한 아이템 ID 목록
-        public List<WorldUnit> ConnectedUnits {get; set;}
         public Field()
         {
             GatherableItems = new List<string>();
-            ConnectedUnits = new List<WorldUnit>();
         }
         
         public override void Action(TrpgGameState state)
@@ -295,13 +293,13 @@ namespace RuleForge
             state.NarrativeText = $"===== {basicInfo.Name} - 주변 탐색 =====\n주변을 둘러봅니다...";
             state.ClearChoices();
 
-            if (ConnectedUnits.Count == 0)
+            if (ConnectedLocations.Count == 0)
             {
                 state.NarrativeText += "\n\n주변에 이동할 수 있는 장소가 없습니다.";
             }
 
             int index = 1;
-            foreach (var unit in ConnectedUnits)
+            foreach (var unit in ConnectedLocations)
             {
                 var targetUnit = unit;
                 string choiceId = index.ToString();
@@ -327,16 +325,11 @@ namespace RuleForge
         }
         
 
-        public void AddWorldUnit(WorldUnit unit)
-        {
-            ConnectedUnits.Add(unit);
-        }
-
         public WorldUnit? SelectExplore(int selectIdx)
         {
-            if (selectIdx < 0 || selectIdx >= ConnectedUnits.Count)
+            if (selectIdx < 0 || selectIdx >= ConnectedLocations.Count)
                 return null;
-            return ConnectedUnits[selectIdx];
+            return ConnectedLocations[selectIdx];
         }
 
 
