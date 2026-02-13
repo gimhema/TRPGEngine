@@ -258,31 +258,72 @@ namespace RuleForge
             state.NarrativeText = $"===== {basicInfo.Name} =====\n{basicInfo.Description}";
             state.ClearChoices();
 
-            state.AddChoice(new TrpgChoice("1", "1. 채집하기"));
-            state.AddChoice(new TrpgChoice("2", "2. 주변 탐색"));
-            state.AddChoice(new TrpgChoice("3", "3. 다른 장소로 이동"));
-            state.AddChoice(new TrpgChoice("4", "4. 돌아가기")
+            state.AddChoice(new TrpgChoice("1", "1. 채집하기")
+            {
+                OnSelect = (s) =>
+                {
+                    Gathering(s);
+                }
+            });
+            state.AddChoice(new TrpgChoice("2", "2. 주변 탐색")
+            {
+                OnSelect = (s) =>
+                {
+                    Explore(s);
+                }
+            });
+            state.AddChoice(new TrpgChoice("3", "3. 돌아가기")
             {
                 OnSelect = (s) => { s.ReturnToPreviousScene(); }
             });
-
-            // TODO: 각 선택지의 OnSelect 구현 (Gathering, Explore, Navigate)
         }
-        
-        public void Gathering()
-        {
-            // 채집 로직
-            Console.WriteLine("주변을 살펴보며 유용한 것들을 찾습니다...");
-            // TODO: GatherableItems에서 랜덤 아이템 획득
-        }
-        
-        public void Explore()
-        {
-            // 탐험 로직
-            Console.WriteLine("주변을 탐험합니다...");
-            // TODO: 랜덤 이벤트, 아이템 발견, 적 조우 등
 
-            // ConnectedUnits의 정보들을 출력해준다.
+        public void Gathering(TrpgGameState state)
+        {
+            // TODO: GatherableItems에서 랜덤 아이템 획득 후 플레이어 인벤토리에 추가
+            // TODO: 플레이어 액션 시스템 구현 후 연결
+            state.NarrativeText = "주변을 살펴보며 유용한 것들을 찾습니다...";
+            Action(state);
+        }
+
+        /// <summary>
+        /// 현재 필드와 연결된 WorldUnit 목록을 선택지로 보여준다.
+        /// 선택 시 해당 WorldUnit의 Action()으로 진입한다.
+        /// </summary>
+        public void Explore(TrpgGameState state)
+        {
+            state.NarrativeText = $"===== {basicInfo.Name} - 주변 탐색 =====\n주변을 둘러봅니다...";
+            state.ClearChoices();
+
+            if (ConnectedUnits.Count == 0)
+            {
+                state.NarrativeText += "\n\n주변에 이동할 수 있는 장소가 없습니다.";
+            }
+
+            int index = 1;
+            foreach (var unit in ConnectedUnits)
+            {
+                var targetUnit = unit;
+                string choiceId = index.ToString();
+                state.AddChoice(new TrpgChoice(choiceId, $"{index}. {targetUnit.GetName()}", targetUnit.GetDescription())
+                {
+                    OnSelect = (s) =>
+                    {
+                        targetUnit.Action(s);
+                    }
+                });
+                index++;
+            }
+
+            // 돌아가기 - 현재 필드 메뉴로 복귀
+            string backId = index.ToString();
+            state.AddChoice(new TrpgChoice(backId, $"{index}. 돌아가기")
+            {
+                OnSelect = (s) =>
+                {
+                    Action(s);
+                }
+            });
         }
         
 
