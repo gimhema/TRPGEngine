@@ -10,7 +10,17 @@ namespace RuleForge
     public class TrpgNPC : TrpgActor
     {
 
-        public void NPCAction()
+        public void InterAction()
+        {
+            
+        }
+
+        public void Trade()
+        {
+            
+        }
+
+        public void Communicate()
         {
             
         }

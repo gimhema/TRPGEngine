@@ -136,14 +136,22 @@ namespace RuleForge
         public class Establishment
         {
             public string Name {get; set;} = "DEFAULT";
+            public Dictionary<string, TrpgNPC> npcs;
             public Establishment()
             {
-            
+                npcs = new Dictionary<string, TrpgNPC>();
             }
 
             public void Action()
             {
-                
+                // 상호작용 가능한 NPC 리스트를 보여준다.                
+            }
+
+            public TrpgNPC? SelectNPC(string npcName)
+            {
+                if (npcs.TryGetValue(npcName, out var npc))
+                return npc;
+            return null;
             }
 
         }
