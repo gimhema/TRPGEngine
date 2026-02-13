@@ -42,12 +42,14 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 2. **TrpgGameState** ([TrpgGameState.cs:10](TrpgGameState.cs#L10)) - 중앙 상태 컨테이너
    - 씬, 선택지, 내러티브 텍스트, 플레이어, 챕터, 퀘스트를 포함한 모든 게임 상태 보유
-   - 씬 전환 메서드 및 선택지 관리 제공
+   - `CurrentLocation`: 현재 플레이어가 위치한 WorldUnit 추적
+   - `SceneHistory`: Stack 기반 다단계 씬 히스토리 (push/pop으로 다단계 되돌아가기 지원)
    - 확장 가능한 상태 저장을 위한 CustomData 딕셔너리 사용
 
 3. **TrpgGameLogic** ([TrpgGameLogic.cs:122](TrpgGameLogic.cs#L122)) - 비즈니스 로직 (싱글톤)
    - 챕터, 퀘스트, 활동 관리
    - 플레이어 생성 및 관리 처리
+   - WorldManager를 내장하여 월드 로드/조회/위치 진입 관리
    - 현재 씬 타입에 따른 입력 처리
 
 4. **TrpgRenderer** - 콘솔 출력 렌더링
@@ -171,9 +173,12 @@ dotnet add package LLamaSharp.Backend.Cpu
 월드 시스템의 기본 구조와 던전 시스템이 구현되었습니다:
 
 **월드 구조**:
+- **WorldManager**: TrpgGameLogic에 내장, 월드 등록/조회 담당
 - **World**: 월드 전체를 관리하는 컨테이너
 - **WorldUnit**: 모든 월드 요소의 추상 기본 클래스
-  - `Action(TrpgGameState state)`: 각 유닛 진입 시 내러티브와 선택지를 TrpgGameState에 설정
+  - `Action(TrpgGameState)`: CurrentLocation 갱신 후 OnAction() 호출 (템플릿 메서드 패턴)
+  - `OnAction(TrpgGameState)`: 하위 클래스에서 구현할 실제 진입 동작
+  - `ConnectedLocations`: 모든 WorldUnit의 연결 관계 관리 (통일된 단일 리스트)
   - **Village**: 마을 (Establishment 포함)
   - **Establishment**: 상호작용 가능한 건물 (상점, 길드, 여관 등)
   - **Field**: 지역 간 연결 영역
@@ -186,7 +191,7 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 **Field 시스템** ✅:
 - **Field.Action()**: 채집하기, 주변 탐색, 돌아가기 선택지 표시
-- **Field.Explore()**: ConnectedUnits에 연결된 WorldUnit 목록을 선택지로 표시, 선택 시 해당 유닛의 Action() 진입, "돌아가기"로 필드 메뉴 복귀
+- **Field.Explore()**: ConnectedLocations에 연결된 WorldUnit 목록을 선택지로 표시, 선택 시 해당 유닛의 Action() 진입, "돌아가기"로 필드 메뉴 복귀
 - **Field.Gathering()**: TODO (플레이어 액션 시스템 구현 후 연결 예정)
 
 **적 및 인카운터 시스템**:
@@ -212,7 +217,6 @@ dotnet add package LLamaSharp.Backend.Cpu
 **미완성 부분**:
 - 전투 시스템 통합 필요 (현재는 구조만 존재)
 - 던전 루프를 TrpgGameState 기반으로 재구성 필요 (전투 시스템 구현 후)
-- World 간 이동 및 연결 관계 미구현
 - Chapter/Quest와의 연동 미구현
 - NPC 대화 시스템 미구현 (Establishment에서 NPC 선택까지만 가능)
 
@@ -248,12 +252,15 @@ dotnet add package LLamaSharp.Backend.Cpu
 - ✅ Village.Action() - 시설 목록 선택지 표시 및 돌아가기
 - ✅ Establishment.Action() - NPC 목록 선택지 표시 및 마을로 돌아가기
 - ✅ Field.Action() - 채집/탐색/돌아가기 선택지 표시
-- ✅ Field.Explore() - ConnectedUnits 목록 표시 및 이동/돌아가기
+- ✅ Field.Explore() - ConnectedLocations 목록 표시 및 이동/돌아가기
 - ✅ Dungeon.Action() - TrpgGameState 기반으로 전환
+- ✅ ConnectedLocations 통일 (Field.ConnectedUnits 제거, 베이스 클래스로 통합)
+- ✅ TrpgGameState.CurrentLocation - 현재 위치 추적
+- ✅ TrpgGameState.SceneHistory - Stack 기반 다단계 씬 히스토리
+- ✅ WorldManager를 TrpgGameLogic에 통합 (LoadWorld, GetWorld, EnterLocation)
 - ✅ TrpgEnemy 및 TrpgEnemyGroup (Queue 기반 인카운터)
 
 **필요 작업**:
-- World/Map 시스템 (위치 간 연결 관계, 이동 조건, 거리)
 - 위치별 Activity 타입 매핑 (Dungeon → Combat, Village → Social)
 - Chapter/Quest 시스템과 연동 (특정 위치 잠금/해금)
 - 전투 시스템과 던전 통합
@@ -339,6 +346,7 @@ dotnet add package LLamaSharp.Backend.Cpu
 4. **GameStartPreprocess** ([Program.cs:110](Program.cs#L110)) - LLM 모델 로딩 및 룰 설정 미구현
 5. 멀티플레이어 클라이언트 모드 구현 누락
 6. TCP 서버와 게임 상태 통합 미완료
+7. WorldManager.LoadWorldInfoByRuleBook() - 룰북 기반 월드 자동 로딩 미구현
 
 ## 개발 우선순위 가이드
 
