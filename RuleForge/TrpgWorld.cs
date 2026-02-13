@@ -128,7 +128,11 @@ namespace RuleForge
             ConnectedLocations.Add(destination);
         }
 
-        protected abstract void Action();
+        /// <summary>
+        /// 해당 월드 유닛에 진입했을 때의 동작을 설정한다.
+        /// TrpgGameState에 내러티브와 선택지를 설정하여 게임 루프에서 처리하도록 한다.
+        /// </summary>
+        public abstract void Action(TrpgGameState state);
     }
 
     public class Village : WorldUnit
@@ -142,9 +146,40 @@ namespace RuleForge
                 npcs = new Dictionary<string, TrpgNPC>();
             }
 
-            public void Action()
+            /// <summary>
+            /// 시설에 진입했을 때의 동작을 설정한다.
+            /// NPC 목록을 선택지로 보여주고, 돌아가기 옵션을 제공한다.
+            /// </summary>
+            public void Action(TrpgGameState state, Village parentVillage)
             {
-                // 상호작용 가능한 NPC 리스트를 보여준다.                
+                state.NarrativeText = $"[{Name}]에 들어왔습니다.";
+                state.ClearChoices();
+
+                int index = 1;
+                foreach (var kvp in npcs)
+                {
+                    var npc = kvp.Value;
+                    string choiceId = index.ToString();
+                    state.AddChoice(new TrpgChoice(choiceId, $"{index}. {npc.Name}과(와) 대화하기")
+                    {
+                        OnSelect = (s) =>
+                        {
+                            // TODO: NPC 대화 시스템 구현 후 연결
+                            s.NarrativeText = $"{npc.Name}과(와) 대화를 시작합니다.";
+                        }
+                    });
+                    index++;
+                }
+
+                // 돌아가기 - 마을 시설 목록으로 복귀
+                string backId = index.ToString();
+                state.AddChoice(new TrpgChoice(backId, $"{index}. 돌아가기")
+                {
+                    OnSelect = (s) =>
+                    {
+                        parentVillage.Action(s);
+                    }
+                });
             }
 
             public TrpgNPC? SelectNPC(string npcName)
@@ -170,9 +205,39 @@ namespace RuleForge
             return null;
         }
 
-        protected override void Action()
+        /// <summary>
+        /// 마을에 진입했을 때의 동작.
+        /// 마을 내 시설 목록을 선택지로 보여주고, 시설 선택 또는 돌아가기를 처리한다.
+        /// </summary>
+        public override void Action(TrpgGameState state)
         {
-            throw new NotImplementedException();
+            state.NarrativeText = $"===== {GetName()} =====\n{GetDescription()}";
+            state.ClearChoices();
+
+            int index = 1;
+            foreach (var kvp in establishments)
+            {
+                var establishment = kvp.Value;
+                string choiceId = index.ToString();
+                state.AddChoice(new TrpgChoice(choiceId, $"{index}. {establishment.Name}")
+                {
+                    OnSelect = (s) =>
+                    {
+                        establishment.Action(s, this);
+                    }
+                });
+                index++;
+            }
+
+            // 돌아가기 - 이전 씬으로 복귀
+            string backId = index.ToString();
+            state.AddChoice(new TrpgChoice(backId, $"{index}. 마을을 떠나기")
+            {
+                OnSelect = (s) =>
+                {
+                    s.ReturnToPreviousScene();
+                }
+            });
         }
 
     }
@@ -188,22 +253,20 @@ namespace RuleForge
             ConnectedUnits = new List<WorldUnit>();
         }
         
-        protected override void Action()
+        public override void Action(TrpgGameState state)
         {
-            Console.WriteLine($"\n===== {basicInfo.Name} =====");
-            Console.WriteLine(basicInfo.Description);
-            
-            bool exploring = true;
-            while (exploring)
+            state.NarrativeText = $"===== {basicInfo.Name} =====\n{basicInfo.Description}";
+            state.ClearChoices();
+
+            state.AddChoice(new TrpgChoice("1", "1. 채집하기"));
+            state.AddChoice(new TrpgChoice("2", "2. 주변 탐색"));
+            state.AddChoice(new TrpgChoice("3", "3. 다른 장소로 이동"));
+            state.AddChoice(new TrpgChoice("4", "4. 돌아가기")
             {
-                Console.WriteLine("\n[1] 채집하기");
-                Console.WriteLine("[2] 주변 탐색");
-                Console.WriteLine("[3] 다른 장소로 이동");
-                Console.WriteLine("[4] 돌아가기");
-                
-                // TODO: 입력 처리 및 각 액션 구현
-                // Gathering(), Explore(), Navigate() 등
-            }
+                OnSelect = (s) => { s.ReturnToPreviousScene(); }
+            });
+
+            // TODO: 각 선택지의 OnSelect 구현 (Gathering, Explore, Navigate)
         }
         
         public void Gathering()
@@ -255,40 +318,22 @@ namespace RuleForge
             ClearReward = new List<TrpgItem>();
         }        
 
-        protected override void Action()
+        public override void Action(TrpgGameState state)
         {
-            // 던전 루프에 진입한다.
-            // TODO: 실제 게임에서는 TrpgPlayer를 파라미터로 받거나
-            // 게임 상태에서 현재 플레이어를 가져와야 함
-
-            Console.WriteLine($"\n===== {basicInfo.Name} 진입 =====");
-            Console.WriteLine(basicInfo.Description);
+            state.NarrativeText = $"===== {basicInfo.Name} 진입 =====\n{basicInfo.Description}";
+            state.ClearChoices();
 
             // 던전 준비 (적 그룹 초기화)
             MakeDungeon();
 
-            // 던전 루프
-            while (EnemyGroupInstance.HasEnemies)
+            state.AddChoice(new TrpgChoice("1", "1. 던전 탐험 시작"));
+            state.AddChoice(new TrpgChoice("2", "2. 돌아가기")
             {
-                // Exploration()를 수행한다.
-                Exploration();
+                OnSelect = (s) => { s.ReturnToPreviousScene(); }
+            });
 
-                // 몬스터와 조우하게되면 EncountEnemy를 실행한다.
-                if (EnemyGroupInstance.HasEnemies)
-                {
-                    EncountEnemy();
-
-                    // TODO: 실제 전투 시스템이 구현되면 여기서 전투 결과를 확인하고
-                    // 플레이어가 죽으면 Failed() 호출
-                    // 적을 처치하면 계속 진행
-                }
-            }
-
-            // 던전의 모든 몬스터들을 쓰러뜨리면 Clear
-            // TODO: 실제로는 플레이어를 파라미터로 받아야 함
-            // Clear(player);
-
-            Console.WriteLine("\n던전의 모든 적을 물리쳤습니다!");
+            // TODO: 던전 루프를 게임 상태 기반으로 재구성 필요
+            // 전투 시스템 구현 후 연결
         }
 
         public void MakeDungeon()
