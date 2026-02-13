@@ -13,6 +13,13 @@ namespace RuleForge
         public string Description { get; set; }
         public TrpgCommon CommonAttributes { get; set; }
 
+        public TrpgActor()
+        {
+            Name = "None";
+            Description = "None";
+            CommonAttributes = new TrpgCommon();
+        }
+
         public TrpgActor(string name, string description = "")
         {
             Name = name;

@@ -21,6 +21,16 @@ namespace RuleForge
         {
             // Parse World Info from RuleBook . . .
         }
+
+        public World? SelectWorld(string selected)
+        {
+            if (Worlds.TryGetValue(selected, out var _world))
+                return _world;
+            return null;
+        }
+
+
+
     }
 
     public class WorldBasicInfo
