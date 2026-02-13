@@ -173,10 +173,21 @@ dotnet add package LLamaSharp.Backend.Cpu
 **월드 구조**:
 - **World**: 월드 전체를 관리하는 컨테이너
 - **WorldUnit**: 모든 월드 요소의 추상 기본 클래스
+  - `Action(TrpgGameState state)`: 각 유닛 진입 시 내러티브와 선택지를 TrpgGameState에 설정
   - **Village**: 마을 (Establishment 포함)
   - **Establishment**: 상호작용 가능한 건물 (상점, 길드, 여관 등)
   - **Field**: 지역 간 연결 영역
   - **Dungeon**: 적 인카운터 및 보상이 있는 던전
+
+**Village 시스템** ✅:
+- **Village.Action()**: 마을 내 시설(Establishment) 목록을 TrpgChoice 선택지로 표시, "마을을 떠나기"로 이전 씬 복귀
+- **Establishment.Action()**: 시설 내 NPC 목록을 선택지로 표시, "돌아가기"로 마을 시설 목록 복귀
+- 마을 → 시설 → NPC 순의 계층적 탐색과 각 단계에서의 돌아가기 지원
+
+**Field 시스템** ✅:
+- **Field.Action()**: 채집하기, 주변 탐색, 돌아가기 선택지 표시
+- **Field.Explore()**: ConnectedUnits에 연결된 WorldUnit 목록을 선택지로 표시, 선택 시 해당 유닛의 Action() 진입, "돌아가기"로 필드 메뉴 복귀
+- **Field.Gathering()**: TODO (플레이어 액션 시스템 구현 후 연결 예정)
 
 **적 및 인카운터 시스템**:
 - **TrpgEnemy** ([TrpgEnemy.cs:10](TrpgEnemy.cs#L10))
@@ -190,19 +201,20 @@ dotnet add package LLamaSharp.Backend.Cpu
   - 중복 없는 순차적 적 등장 보장
 
 **던전 시스템**:
+- **Dungeon.Action()**: 던전 진입 화면 (탐험 시작 / 돌아가기 선택지, TrpgGameState 기반)
 - **Dungeon.MakeDungeon()**: EnemyList를 EnemyGroupInstance에 등록
 - **Dungeon.Exploration()**: 던전 탐험 로직 (TODO: 이벤트, 함정 등 확장 필요)
 - **Dungeon.EncountEnemy()**: 적 인카운터 처리
 - **Dungeon.GiveReward()**: 던전 클리어 보상 지급
 - **Dungeon.Clear()**: 던전 클리어 처리 및 보상 지급
 - **Dungeon.Failed()**: 던전 실패 처리
-- **Dungeon.Action()**: 던전 메인 루프 (탐험 → 인카운터 → 클리어/실패)
 
 **미완성 부분**:
 - 전투 시스템 통합 필요 (현재는 구조만 존재)
-- Village, Field, Establishment의 Action() 메소드 미구현
+- 던전 루프를 TrpgGameState 기반으로 재구성 필요 (전투 시스템 구현 후)
 - World 간 이동 및 연결 관계 미구현
 - Chapter/Quest와의 연동 미구현
+- NPC 대화 시스템 미구현 (Establishment에서 NPC 선택까지만 가능)
 
 ## 미구현 시스템 (우선순위별)
 
@@ -232,16 +244,20 @@ dotnet add package LLamaSharp.Backend.Cpu
 #### 3. 월드/위치 시스템 🟡 (부분 구현)
 **완료된 작업**:
 - ✅ World, WorldUnit 기본 구조 ([TrpgWorld.cs](TrpgWorld.cs))
-- ✅ Dungeon 클래스 및 던전 루프 구현
+- ✅ WorldUnit.Action(TrpgGameState) 추상 메서드 - 상태 기반 패턴으로 전환
+- ✅ Village.Action() - 시설 목록 선택지 표시 및 돌아가기
+- ✅ Establishment.Action() - NPC 목록 선택지 표시 및 마을로 돌아가기
+- ✅ Field.Action() - 채집/탐색/돌아가기 선택지 표시
+- ✅ Field.Explore() - ConnectedUnits 목록 표시 및 이동/돌아가기
+- ✅ Dungeon.Action() - TrpgGameState 기반으로 전환
 - ✅ TrpgEnemy 및 TrpgEnemyGroup (Queue 기반 인카운터)
-- ✅ Village, Field, Establishment 클래스 골격
 
 **필요 작업**:
 - World/Map 시스템 (위치 간 연결 관계, 이동 조건, 거리)
-- Village, Field, Establishment의 Action() 메소드 구현
 - 위치별 Activity 타입 매핑 (Dungeon → Combat, Village → Social)
 - Chapter/Quest 시스템과 연동 (특정 위치 잠금/해금)
 - 전투 시스템과 던전 통합
+- Field.Gathering() 구현 (플레이어 액션 시스템 필요)
 
 **참고**: [TrpgInterface.cs:319-333](TrpgInterface.cs#L319-L333) SelectLocation에 TODO 주석 존재
 
