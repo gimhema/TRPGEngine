@@ -145,11 +145,11 @@ namespace RuleForge
             
         }
 
-        public Establishment SelectEstablishment(int selected)
+        public Establishment? SelectEstablishment(string selected)
         {
-            Establishment selected;
-
-            return selected;
+            if (establishments.TryGetValue(selected, out var establishment))
+                return establishment;
+            return null;
         }
 
         protected override void Action()
@@ -210,11 +210,11 @@ namespace RuleForge
             ConnectedUnits.Add(unit);
         }
 
-        public WorldUnit SelectExplore(int selectIdx)
+        public WorldUnit? SelectExplore(int selectIdx)
         {
-            WorldUnit selected;
-
-            return selected;
+            if (selectIdx < 0 || selectIdx >= ConnectedUnits.Count)
+                return null;
+            return ConnectedUnits[selectIdx];
         }
 
 
