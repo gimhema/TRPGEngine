@@ -169,7 +169,7 @@ namespace RuleForge
         /// </summary>
         private void HandleBack(TrpgGameState state)
         {
-            if (state.PreviousScene.HasValue)
+            if (state.HasPreviousScene)
             {
                 Console.WriteLine("\n이전 화면으로 돌아갑니다...");
                 state.ReturnToPreviousScene();

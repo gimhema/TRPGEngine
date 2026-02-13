@@ -33,9 +33,9 @@ namespace RuleForge
         public SceneType CurrentScene { get; set; }
 
         /// <summary>
-        /// 이전 씬 (되돌아가기 기능용)
+        /// 씬 히스토리 스택 (다단계 되돌아가기 지원)
         /// </summary>
-        public SceneType? PreviousScene { get; set; }
+        public Stack<SceneType> SceneHistory { get; set; }
 
         /// <summary>
         /// 현재 사용 가능한 선택지 목록
@@ -85,7 +85,7 @@ namespace RuleForge
         public TrpgGameState()
         {
             CurrentScene = SceneType.MainMenu;
-            PreviousScene = null;
+            SceneHistory = new Stack<SceneType>();
             AvailableChoices = new List<TrpgChoice>();
             NarrativeText = "";
             CurrentPlayer = null;
@@ -98,25 +98,29 @@ namespace RuleForge
         }
 
         /// <summary>
-        /// 씬 전환 (이전 씬 기록)
+        /// 씬 전환 (현재 씬을 히스토리에 push)
         /// </summary>
         public void ChangeScene(SceneType newScene)
         {
-            PreviousScene = CurrentScene;
+            SceneHistory.Push(CurrentScene);
             CurrentScene = newScene;
         }
 
         /// <summary>
-        /// 이전 씬으로 되돌아가기
+        /// 이전 씬으로 되돌아가기 (히스토리에서 pop)
         /// </summary>
         public void ReturnToPreviousScene()
         {
-            if (PreviousScene.HasValue)
+            if (SceneHistory.Count > 0)
             {
-                CurrentScene = PreviousScene.Value;
-                PreviousScene = null;
+                CurrentScene = SceneHistory.Pop();
             }
         }
+
+        /// <summary>
+        /// 이전 씬이 존재하는지 확인
+        /// </summary>
+        public bool HasPreviousScene => SceneHistory.Count > 0;
 
         /// <summary>
         /// 선택지 초기화 및 설정

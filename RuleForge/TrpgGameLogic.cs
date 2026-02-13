@@ -124,6 +124,7 @@ namespace RuleForge
         private static TrpgGameLogic? _instance;
         private TrpgRule GameRule = new TrpgRule();
         private List<Chapter> Chapters = new List<Chapter>();
+        private WorldManager WorldMgr = new WorldManager();
 
         private Dictionary<string, TrpgPlayer> Players = new Dictionary<string, TrpgPlayer>();
 
@@ -240,8 +241,34 @@ namespace RuleForge
             {
                 state.CurrentChapter = Chapters[chapterIndex];
                 state.NarrativeText = Chapters[chapterIndex].GetStartNarrative();
-                state.CurrentScene = TrpgGameState.SceneType.Exploration;
+                state.ChangeScene(TrpgGameState.SceneType.Exploration);
             }
+        }
+
+        /// <summary>
+        /// 월드 로드
+        /// </summary>
+        public void LoadWorld(string name, World world)
+        {
+            WorldMgr.Worlds[name] = world;
+        }
+
+        /// <summary>
+        /// 월드 가져오기
+        /// </summary>
+        public World? GetWorld(string name)
+        {
+            return WorldMgr.SelectWorld(name);
+        }
+
+        /// <summary>
+        /// 플레이어를 특정 위치로 진입시킨다.
+        /// 씬을 Exploration으로 전환하고 해당 WorldUnit의 Action()을 호출한다.
+        /// </summary>
+        public void EnterLocation(WorldUnit location, TrpgGameState state)
+        {
+            state.ChangeScene(TrpgGameState.SceneType.Exploration);
+            location.Action(state);
         }
 
 
