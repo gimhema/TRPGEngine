@@ -348,8 +348,7 @@ namespace RuleForge
 
     public class Dungeon : WorldUnit
     {
-
-        public bool IsClear {get; set;} = false;
+        public bool IsClear { get; set; } = false;
 
         public List<TrpgEnemy> EnemyList;
         public TrpgEnemyGroup EnemyGroupInstance;
@@ -358,108 +357,173 @@ namespace RuleForge
 
         public Dungeon()
         {
+            EnemyList = new List<TrpgEnemy>();
             EnemyGroupInstance = new TrpgEnemyGroup();
             ClearReward = new List<TrpgItem>();
-        }        
+        }
 
         protected override void OnAction(TrpgGameState state)
         {
             state.NarrativeText = $"===== {basicInfo.Name} 진입 =====\n{basicInfo.Description}";
             state.ClearChoices();
 
+            if (IsClear)
+            {
+                state.NarrativeText += "\n\n이미 클리어한 던전입니다.";
+                state.AddChoice(new TrpgChoice("1", "1. 돌아가기")
+                {
+                    OnSelect = (s) => { s.ReturnToPreviousScene(); }
+                });
+                return;
+            }
+
             // 던전 준비 (적 그룹 초기화)
             MakeDungeon();
 
-            state.AddChoice(new TrpgChoice("1", "1. 던전 탐험 시작"));
+            int enemyCount = EnemyGroupInstance.RemainingEnemies;
+            state.NarrativeText += $"\n\n적 {enemyCount}마리가 기다리고 있다...";
+
+            state.AddChoice(new TrpgChoice("1", "1. 던전 탐험 시작")
+            {
+                OnSelect = (s) => { StartDungeonExploration(s); }
+            });
             state.AddChoice(new TrpgChoice("2", "2. 돌아가기")
             {
                 OnSelect = (s) => { s.ReturnToPreviousScene(); }
             });
-
-            // TODO: 던전 루프를 게임 상태 기반으로 재구성 필요
-            // 전투 시스템 구현 후 연결
         }
 
+        /// <summary>
+        /// 적 그룹을 초기화한다. 기존 큐를 비우고 EnemyList에서 다시 등록한다.
+        /// </summary>
         public void MakeDungeon()
         {
-            foreach(var enemy in EnemyList)
+            EnemyGroupInstance.Clear();
+            foreach (var enemy in EnemyList)
             {
                 EnemyGroupInstance.AddEnemy(enemy);
             }
         }
 
-        public void Exploration()
+        /// <summary>
+        /// 던전 탐험을 시작한다. 다음 적과 전투를 개시한다.
+        /// </summary>
+        private void StartDungeonExploration(TrpgGameState state)
         {
-            // 던전 탐험 로직
-            // TODO: 던전 내부 이동, 이벤트 발생 등의 로직 구현
-            Console.WriteLine("던전을 탐험하고 있습니다...");
-        }
-
-
-        public void EncountEnemy()
-        {
-            var _enemy = EnemyGroupInstance.Encount();
-            _enemy.EnemyAction();
-        }
-
-        public void GiveReward(TrpgPlayer player)
-        {
-            // 플레이어에게 ClearReward를 지급함
-            if (ClearReward == null || ClearReward.Count == 0)
+            if (!EnemyGroupInstance.HasEnemies)
             {
-                Console.WriteLine("던전 클리어 보상이 없습니다.");
+                Clear(state);
                 return;
             }
 
-            Console.WriteLine($"\n던전 클리어 보상 {ClearReward.Count}개를 획득했습니다!");
-
-            foreach (var rewardItem in ClearReward)
+            var enemy = EnemyGroupInstance.Encount();
+            if (enemy == null)
             {
-                if (rewardItem is Consumable consumable)
+                Clear(state);
+                return;
+            }
+
+            TrpgGameLogic.Instance.StartBattle(enemy, state, ContinueDungeonExploration);
+        }
+
+        /// <summary>
+        /// 전투 종료 후 콜백. 승리 시 다음 적과 전투, 모두 처치 시 클리어, 패배 시 실패 처리.
+        /// </summary>
+        private void ContinueDungeonExploration(TrpgGameState state, bool isVictory)
+        {
+            if (!isVictory)
+            {
+                Failed(state);
+                return;
+            }
+
+            if (EnemyGroupInstance.HasEnemies)
+            {
+                // 다음 적과 전투 (이미 Combat 씬이므로 씬 전환 불필요)
+                var nextEnemy = EnemyGroupInstance.Encount();
+                if (nextEnemy != null)
                 {
-                    player.playerItemBag.AcquireConsumable(consumable);
-                    Console.WriteLine($"  - {consumable.ItemName} 획득!");
-                }
-                else if (rewardItem is Equipment equipment)
-                {
-                    player.playerItemBag.AcquireEquipment(equipment);
-                    Console.WriteLine($"  - {equipment.ItemName} 획득!");
-                }
-                else if (rewardItem is KeyItem keyItem)
-                {
-                    player.playerItemBag.KeyItems.Add(keyItem);
-                    Console.WriteLine($"  - {keyItem.ItemName} 획득!");
+                    int remaining = EnemyGroupInstance.RemainingEnemies;
+                    state.NarrativeText = $"다음 적이 나타난다! (남은 적: {remaining})";
+                    state.ClearChoices();
+                    state.AddChoice(new TrpgChoice("1", "1. 전투 계속")
+                    {
+                        OnSelect = (s) =>
+                        {
+                            TrpgGameLogic.Instance.StartBattle(nextEnemy, s, ContinueDungeonExploration);
+                        }
+                    });
+                    return;
                 }
             }
+
+            Clear(state);
         }
 
-        public void Failed(TrpgPlayer player)
+        /// <summary>
+        /// 던전 클리어 처리. 보상을 지급하고 필드로 복귀할 수 있게 한다.
+        /// </summary>
+        public void Clear(TrpgGameState state)
         {
-            // 던전 실패 조건은 플레이어의 죽음이다.
-            Console.WriteLine("\n던전 공략 실패!");
-            Console.WriteLine($"{player.Name}은(는) 쓰러졌습니다...");
-
-            // 플레이어는 필드로 나가게 된다.
-            Console.WriteLine("필드로 이동합니다.");
-
-            // TODO: 실패 시 페널티 (아이템 손실, 경험치 감소 등) 구현 가능
-        }
-
-        public void Clear(TrpgPlayer player)
-        {
-            // 모든 몬스터들을 클리어하면 클리어 보상을 지급한다.
-            Console.WriteLine("\n===== 던전 클리어! =====");
-            Console.WriteLine($"{basicInfo.Name}의 모든 적을 처치했습니다!");
-
             IsClear = true;
 
-            // 클리어 보상 지급
-            GiveReward(player);
+            var sb = new StringBuilder();
+            sb.AppendLine("===== 던전 클리어! =====");
+            sb.AppendLine($"{basicInfo.Name}의 모든 적을 처치했습니다!");
 
-            // 플레이어는 필드로 나가게 된다.
-            Console.WriteLine("\n필드로 이동합니다.");
+            // 클리어 보상 지급
+            if (ClearReward.Count > 0 && state.CurrentPlayer != null)
+            {
+                sb.AppendLine($"\n던전 클리어 보상 {ClearReward.Count}개를 획득!");
+                foreach (var rewardItem in ClearReward)
+                {
+                    if (rewardItem is Consumable consumable)
+                    {
+                        state.CurrentPlayer.playerItemBag.AcquireConsumable(consumable);
+                        sb.AppendLine($"  - {consumable.ItemName} 획득!");
+                    }
+                    else if (rewardItem is Equipment equipment)
+                    {
+                        state.CurrentPlayer.playerItemBag.AcquireEquipment(equipment);
+                        sb.AppendLine($"  - {equipment.ItemName} 획득!");
+                    }
+                    else if (rewardItem is KeyItem keyItem)
+                    {
+                        state.CurrentPlayer.playerItemBag.KeyItems.Add(keyItem);
+                        sb.AppendLine($"  - {keyItem.ItemName} 획득!");
+                    }
+                }
+            }
+
+            state.NarrativeText = sb.ToString();
+            state.ClearChoices();
+            state.AddChoice(new TrpgChoice("1", "1. 필드로 돌아가기")
+            {
+                OnSelect = (s) => { s.ReturnToPreviousScene(); }
+            });
         }
 
+        /// <summary>
+        /// 던전 실패 처리. HP를 1로 회복하고 필드로 복귀할 수 있게 한다.
+        /// </summary>
+        public void Failed(TrpgGameState state)
+        {
+            var playerName = state.CurrentPlayer?.Name ?? "플레이어";
+            state.NarrativeText = $"===== 던전 공략 실패! =====\n{playerName}은(는) 쓰러졌습니다...\n\n필드로 이동합니다.";
+            state.ClearChoices();
+            state.AddChoice(new TrpgChoice("1", "1. 필드로 돌아가기")
+            {
+                OnSelect = (s) =>
+                {
+                    // HP를 1로 회복 (게임 오버 방지)
+                    if (s.CurrentPlayer != null)
+                    {
+                        s.CurrentPlayer.CommonAttributes.UpdateStatus("HP", 1);
+                    }
+                    s.ReturnToPreviousScene();
+                }
+            });
+        }
     }
 
 }

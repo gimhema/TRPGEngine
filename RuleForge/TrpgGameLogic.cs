@@ -219,6 +219,9 @@ namespace RuleForge
             // 기본 스탯 설정
             newPlayer.CommonAttributes.AddNewStatus("HP", 100);
             newPlayer.CommonAttributes.AddNewStatus("MP", 50);
+            newPlayer.CommonAttributes.AddNewStatus("ATK", 15);
+            newPlayer.CommonAttributes.AddNewStatus("DEF", 10);
+            newPlayer.CommonAttributes.AddNewStatus("SPD", 10);
 
             Players[name] = newPlayer;
             return newPlayer;
@@ -269,6 +272,27 @@ namespace RuleForge
         {
             state.ChangeScene(TrpgGameState.SceneType.Exploration);
             location.Action(state);
+        }
+
+        /// <summary>
+        /// 전투를 시작한다.
+        /// Combat 씬으로 전환하고 TrpgBattle을 생성하여 전투 루프를 개시한다.
+        /// </summary>
+        public void StartBattle(TrpgEnemy enemy, TrpgGameState state, Action<TrpgGameState, bool>? onBattleEnd = null)
+        {
+            if (state.CurrentPlayer == null) return;
+
+            var battle = new TrpgBattle(state.CurrentPlayer, enemy);
+            battle.OnBattleEnd = onBattleEnd;
+            state.CurrentBattle = battle;
+
+            // 이미 Combat 씬이면 씬 전환 불필요 (던전 연속 전투 등)
+            if (state.CurrentScene != TrpgGameState.SceneType.Combat)
+            {
+                state.ChangeScene(TrpgGameState.SceneType.Combat);
+            }
+
+            battle.StartBattle(state);
         }
 
 

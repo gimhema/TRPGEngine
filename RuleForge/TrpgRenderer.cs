@@ -127,8 +127,33 @@ namespace RuleForge
         {
             RenderHeader("BATTLE");
             RenderPlayerStatus(state);
+            RenderEnemyStatus(state);
             RenderNarrative(state);
             RenderChoices(state);
+        }
+
+        /// <summary>
+        /// 적 상태 렌더링 (전투 중)
+        /// </summary>
+        private void RenderEnemyStatus(TrpgGameState state)
+        {
+            if (state.CurrentBattle != null)
+            {
+                var enemy = state.CurrentBattle.CurrentEnemy;
+                var enemyHp = enemy.CommonAttributes.GetStatus("HP");
+                var enemyAtk = enemy.CommonAttributes.GetStatus("ATK");
+                var enemyDef = enemy.CommonAttributes.GetStatus("DEF");
+
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write($"VS [{enemy.Name}]  ");
+                Console.ResetColor();
+
+                if (enemyHp != null) Console.Write($"HP: {enemyHp.StatusValue} ");
+                if (enemyAtk != null) Console.Write($"ATK: {enemyAtk.StatusValue} ");
+                if (enemyDef != null) Console.Write($"DEF: {enemyDef.StatusValue}");
+                Console.WriteLine();
+            }
         }
 
         /// <summary>

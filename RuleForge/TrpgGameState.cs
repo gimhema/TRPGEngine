@@ -68,6 +68,11 @@ namespace RuleForge
         public WorldUnit? CurrentLocation { get; set; }
 
         /// <summary>
+        /// 현재 진행 중인 전투 (전투 중이 아니면 null)
+        /// </summary>
+        public TrpgBattle? CurrentBattle { get; set; }
+
+        /// <summary>
         /// 게임 종료 플래그
         /// </summary>
         public bool ShouldExit { get; set; }
@@ -92,6 +97,7 @@ namespace RuleForge
             CurrentChapter = null;
             CurrentQuest = null;
             CurrentLocation = null;
+            CurrentBattle = null;
             ShouldExit = false;
             IsGameCleared = false;
             CustomData = new Dictionary<string, object>();

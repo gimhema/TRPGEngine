@@ -14,7 +14,18 @@ namespace RuleForge
 
         public TrpgEnemy(string name, string description = "", string className = "") : base(name, description)
         {
+            BattleReward = new List<TrpgItem>();
+        }
 
+        /// <summary>
+        /// 전투 스탯을 초기화한다. (HP, ATK, DEF, SPD)
+        /// </summary>
+        public void InitCombatStats(int hp, int atk, int def, int spd)
+        {
+            CommonAttributes.AddNewStatus("HP", hp);
+            CommonAttributes.AddNewStatus("ATK", atk);
+            CommonAttributes.AddNewStatus("DEF", def);
+            CommonAttributes.AddNewStatus("SPD", spd);
         }
 
         public void EnemyAction()
