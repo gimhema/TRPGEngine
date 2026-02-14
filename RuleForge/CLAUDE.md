@@ -43,13 +43,15 @@ dotnet add package LLamaSharp.Backend.Cpu
 2. **TrpgGameState** ([TrpgGameState.cs:10](TrpgGameState.cs#L10)) - 중앙 상태 컨테이너
    - 씬, 선택지, 내러티브 텍스트, 플레이어, 챕터, 퀘스트를 포함한 모든 게임 상태 보유
    - `CurrentLocation`: 현재 플레이어가 위치한 WorldUnit 추적
+   - `CurrentBattle`: 현재 진행 중인 전투 상태 (TrpgBattle 인스턴스, 전투 중이 아니면 null)
    - `SceneHistory`: Stack 기반 다단계 씬 히스토리 (push/pop으로 다단계 되돌아가기 지원)
    - 확장 가능한 상태 저장을 위한 CustomData 딕셔너리 사용
 
 3. **TrpgGameLogic** ([TrpgGameLogic.cs:122](TrpgGameLogic.cs#L122)) - 비즈니스 로직 (싱글톤)
    - 챕터, 퀘스트, 활동 관리
-   - 플레이어 생성 및 관리 처리
+   - 플레이어 생성 및 관리 처리 (기본 스탯: HP 100, MP 50, ATK 15, DEF 10, SPD 10)
    - WorldManager를 내장하여 월드 로드/조회/위치 진입 관리
+   - `StartBattle()`: 전투 개시 (TrpgBattle 생성, Combat 씬 전환, 콜백 기반 종료 처리)
    - 현재 씬 타입에 따른 입력 처리
 
 4. **TrpgRenderer** - 콘솔 출력 렌더링
@@ -121,8 +123,8 @@ dotnet add package LLamaSharp.Backend.Cpu
    - PlayerItemBag: 소비템, 장비, 키 아이템 인벤토리
    - PlayerEquipments: 장착된 아이템 관리
 
-2. **TrpgActor** - 캐릭터(플레이어, NPC)의 기본 클래스
-   - CommonAttributes: 동적 상태 속성 (HP, MP 등)
+2. **TrpgActor** - 캐릭터(플레이어, NPC, 적)의 기본 클래스
+   - CommonAttributes: 동적 상태 속성 (HP, MP, ATK, DEF, SPD)
 
 3. **아이템 시스템** - 세 가지 아이템 타입
    - Equipment (장비): 장착/해제 가능
@@ -167,10 +169,47 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 모든 아이템 관련 로직은 하드코딩 없이 실제 플레이어 데이터를 기반으로 동작합니다.
 
-### 월드/던전 시스템 (부분 구현) 🟡
+### 전투 시스템 ✅
+**위치**: [TrpgBattle.cs](TrpgBattle.cs), [TrpgEnemy.cs](TrpgEnemy.cs), [TrpgGameLogic.cs](TrpgGameLogic.cs)
+
+턴제 전투 시스템이 TrpgGameState 기반으로 완전히 구현되었습니다:
+
+**핵심 클래스**:
+- **TrpgBattle** ([TrpgBattle.cs](TrpgBattle.cs)) - 전투 상태 컨테이너 및 전투 루프
+  - `BattlePhase`: PlayerTurn, EnemyTurn, Victory, Defeat 4단계
+  - `BattleLog`: 전투 로그 기록 (최근 5개 표시)
+  - `OnBattleEnd`: 전투 종료 콜백 (승리/패배 후처리용)
+
+**플레이어 액션** (4가지):
+- **공격**: ATK vs DEF 기반 데미지 계산
+- **방어**: 다음 적 공격 데미지 50% 감소
+- **아이템 사용**: 소비 아이템 목록에서 선택하여 사용 (전투 중)
+- **도망치기**: SPD 차이 기반 성공 확률 (기본 50%, ±5%/SPD 차이, 10~90% 범위)
+
+**데미지 계산**:
+- 공식: `ATK - DEF/2`, ±20% 랜덤 편차 (0.8~1.2배), 최소 데미지 1
+- `TrpgBattle.CalculateDamage(attackPower, defensePower)` 정적 메서드
+
+**적 시스템**:
+- **TrpgEnemy.InitCombatStats(hp, atk, def, spd)**: 전투 스탯 일괄 초기화
+- **적 AI**: 기본 공격 수행 (EnemyTurn에서 처리)
+- **보상 시스템**: 적 처치 시 BattleReward에서 랜덤 보상 지급 (BattleLog에 기록)
+
+**전투 흐름**:
+1. `TrpgGameLogic.StartBattle(enemy, state, onBattleEnd)` 호출
+2. Combat 씬 전환 → TrpgBattle.StartBattle() → 플레이어 턴 선택지 표시
+3. 플레이어 액션 → 적 HP 확인 → 적 턴 → 플레이어 HP 확인 → 다음 턴
+4. 승리/패배 → "계속" 선택 → OnBattleEnd 콜백 실행
+5. 연속 전투 지원: 이미 Combat 씬이면 씬 전환 없이 새 전투 시작
+
+**렌더링**:
+- `TrpgRenderer.RenderCombat()`: 플레이어 상태 + 적 상태(HP/ATK/DEF) + 전투 로그 + 선택지
+- `RenderEnemyStatus()`: 적 이름, HP, ATK, DEF를 빨간색 강조 표시
+
+### 월드/던전 시스템 ✅
 **위치**: [TrpgWorld.cs](TrpgWorld.cs), [TrpgEnemy.cs](TrpgEnemy.cs)
 
-월드 시스템의 기본 구조와 던전 시스템이 구현되었습니다:
+월드 시스템과 던전-전투 통합이 구현되었습니다:
 
 **월드 구조**:
 - **WorldManager**: TrpgGameLogic에 내장, 월드 등록/조회 담당
@@ -196,7 +235,8 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 **적 및 인카운터 시스템**:
 - **TrpgEnemy** ([TrpgEnemy.cs:10](TrpgEnemy.cs#L10))
-  - `BattleReward`: 전투 보상 아이템 리스트
+  - `InitCombatStats(hp, atk, def, spd)`: 전투 스탯 일괄 초기화
+  - `BattleReward`: 전투 보상 아이템 리스트 (생성자에서 초기화)
   - `GiveReward()`: 랜덤 개수의 보상을 랜덤 선택하여 지급
   - `Death()`: 적 처치 시 보상 지급 처리
 
@@ -205,35 +245,31 @@ dotnet add package LLamaSharp.Backend.Cpu
   - `Encount()`: 다음 적을 Dequeue하여 반환
   - 중복 없는 순차적 적 등장 보장
 
-**던전 시스템**:
-- **Dungeon.Action()**: 던전 진입 화면 (탐험 시작 / 돌아가기 선택지, TrpgGameState 기반)
-- **Dungeon.MakeDungeon()**: EnemyList를 EnemyGroupInstance에 등록
-- **Dungeon.Exploration()**: 던전 탐험 로직 (TODO: 이벤트, 함정 등 확장 필요)
-- **Dungeon.EncountEnemy()**: 적 인카운터 처리
-- **Dungeon.GiveReward()**: 던전 클리어 보상 지급
-- **Dungeon.Clear()**: 던전 클리어 처리 및 보상 지급
-- **Dungeon.Failed()**: 던전 실패 처리
+**던전 시스템** ✅ (전투 통합 완료):
+- **Dungeon.OnAction()**: 던전 진입 화면 (적 수 표시, 클리어 여부 확인)
+- **Dungeon.MakeDungeon()**: EnemyGroupInstance 초기화 (기존 큐 클리어 후 재등록)
+- **Dungeon.StartDungeonExploration()**: 첫 적과 전투 개시, 콜백 기반 연쇄 전투
+- **Dungeon.ContinueDungeonExploration()**: 전투 종료 콜백 - 승리 시 다음 적 또는 클리어, 패배 시 실패
+- **Dungeon.Clear(TrpgGameState)**: 던전 클리어 + 보상 지급 (GameState 기반, 내러티브로 표시)
+- **Dungeon.Failed(TrpgGameState)**: 던전 실패 + HP 1 회복 + 필드 복귀 (GameState 기반)
 
 **미완성 부분**:
-- 전투 시스템 통합 필요 (현재는 구조만 존재)
-- 던전 루프를 TrpgGameState 기반으로 재구성 필요 (전투 시스템 구현 후)
 - Chapter/Quest와의 연동 미구현
 - NPC 대화 시스템 미구현 (Establishment에서 NPC 선택까지만 가능)
+- Field.Gathering() 구현 (플레이어 액션 시스템 필요)
 
 ## 미구현 시스템 (우선순위별)
 
 ### 핵심 게임플레이 시스템
 
-#### 1. 전투 시스템 🔴
-**필요 작업**:
-- Battle/Combat 클래스 생성 (전투 상태, 턴 관리)
-- Enemy/Monster 클래스 생성 (적 캐릭터, 스탯, AI)
-- 전투 액션 시스템 (Attack, Defend, Skill 사용, Guard 등)
-- 턴제/실시간 전투 시스템 결정
-- 전투 결과 처리 (승리/패배, 경험치, 전리품, 레벨업)
-- 전투 UI/렌더링 시스템
+#### 1. 전투 시스템 ✅ (구현 완료)
+턴제 전투 시스템이 구현되었습니다. 자세한 내용은 위의 "구현된 시스템 > 전투 시스템" 섹션을 참조하세요.
 
-**참고**: [TrpgInterface.cs:122-137](TrpgInterface.cs#L122-L137) HandleBattleInput에 TODO 주석 존재
+**향후 확장 가능 사항**:
+- 경험치 및 레벨업 시스템
+- 장비 스탯 반영 (Equipment의 EquipmentStatuses를 전투 계산에 반영)
+- 크리티컬 히트, 회피 등 추가 전투 메커니즘
+- 소비 아이템의 실제 효과 구현 (HP/MP 회복 등)
 
 #### 2. 스킬 시스템 🔴
 **필요 작업**:
@@ -245,28 +281,13 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 **참고**: [TrpgInterface.cs:338-353](TrpgInterface.cs#L338-L353) SelectSkill에 TODO 주석 존재
 
-#### 3. 월드/위치 시스템 🟡 (부분 구현)
-**완료된 작업**:
-- ✅ World, WorldUnit 기본 구조 ([TrpgWorld.cs](TrpgWorld.cs))
-- ✅ WorldUnit.Action(TrpgGameState) 추상 메서드 - 상태 기반 패턴으로 전환
-- ✅ Village.Action() - 시설 목록 선택지 표시 및 돌아가기
-- ✅ Establishment.Action() - NPC 목록 선택지 표시 및 마을로 돌아가기
-- ✅ Field.Action() - 채집/탐색/돌아가기 선택지 표시
-- ✅ Field.Explore() - ConnectedLocations 목록 표시 및 이동/돌아가기
-- ✅ Dungeon.Action() - TrpgGameState 기반으로 전환
-- ✅ ConnectedLocations 통일 (Field.ConnectedUnits 제거, 베이스 클래스로 통합)
-- ✅ TrpgGameState.CurrentLocation - 현재 위치 추적
-- ✅ TrpgGameState.SceneHistory - Stack 기반 다단계 씬 히스토리
-- ✅ WorldManager를 TrpgGameLogic에 통합 (LoadWorld, GetWorld, EnterLocation)
-- ✅ TrpgEnemy 및 TrpgEnemyGroup (Queue 기반 인카운터)
+#### 3. 월드/위치 시스템 ✅ (구현 완료)
+월드 시스템과 던전-전투 통합이 구현되었습니다. 자세한 내용은 위의 "구현된 시스템 > 월드/던전 시스템" 섹션을 참조하세요.
 
-**필요 작업**:
+**향후 확장 가능 사항**:
 - 위치별 Activity 타입 매핑 (Dungeon → Combat, Village → Social)
 - Chapter/Quest 시스템과 연동 (특정 위치 잠금/해금)
-- 전투 시스템과 던전 통합
 - Field.Gathering() 구현 (플레이어 액션 시스템 필요)
-
-**참고**: [TrpgInterface.cs:319-333](TrpgInterface.cs#L319-L333) SelectLocation에 TODO 주석 존재
 
 ### 경제 및 거래 시스템
 
@@ -350,8 +371,11 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 ## 개발 우선순위 가이드
 
+### ✅ 구현 완료
+전투 시스템, 월드/던전 시스템, 아이템/인벤토리 시스템
+
 ### 🔴 높음 (핵심 게임플레이)
-전투, 스킬, 월드/위치 시스템 - 게임의 기본 루프를 완성하는 데 필수
+스킬 시스템 - 전투의 전략적 깊이를 추가하는 데 필수
 
 ### 🟡 중간 (컨텐츠 확장)
 상점, NPC 대화, 퀘스트 관리 - 게임 깊이와 재미를 추가
