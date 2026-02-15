@@ -143,9 +143,42 @@ namespace RuleForge
         public PlayerClass playerClass { get; set; }
         public PlayerItemBag playerItemBag { get; set; } = new PlayerItemBag();
         public PlayerEquipments playerEquipments { get; set; } = new PlayerEquipments();
+        public List<TrpgSkill> PlayerSkills { get; set; } = new List<TrpgSkill>();
+
         public TrpgPlayer(string name, string description = "", string className = "") : base(name, description)
         {
             playerClass = new PlayerClass(className);
+        }
+
+        /// <summary>
+        /// 스킬을 습득한다.
+        /// </summary>
+        public bool LearnSkill(TrpgSkill skill)
+        {
+            if (PlayerSkills.Exists(s => s.SkillName == skill.SkillName))
+                return false;
+
+            if (skill.RequiredLevel > playerProfile.PlayerLevel)
+                return false;
+
+            PlayerSkills.Add(skill);
+            return true;
+        }
+
+        /// <summary>
+        /// 스킬을 잊는다.
+        /// </summary>
+        public bool ForgetSkill(string skillName)
+        {
+            return PlayerSkills.RemoveAll(s => s.SkillName == skillName) > 0;
+        }
+
+        /// <summary>
+        /// 현재 사용 가능한 스킬 목록 (MP가 충분한 스킬)
+        /// </summary>
+        public List<TrpgSkill> GetUsableSkills()
+        {
+            return PlayerSkills.FindAll(s => s.CanUse(this));
         }
     }
 
