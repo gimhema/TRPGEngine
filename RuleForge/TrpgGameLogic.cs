@@ -223,6 +223,12 @@ namespace RuleForge
             newPlayer.CommonAttributes.AddNewStatus("DEF", 10);
             newPlayer.CommonAttributes.AddNewStatus("SPD", 10);
 
+            // 기본 스킬 습득
+            foreach (var skill in TrpgSkillData.GetStarterSkills())
+            {
+                newPlayer.LearnSkill(skill);
+            }
+
             Players[name] = newPlayer;
             return newPlayer;
         }
