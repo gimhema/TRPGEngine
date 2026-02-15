@@ -150,10 +150,11 @@ namespace RuleForge
         {
             Console.WriteLine("\n===== EXPLORATION MENU =====");
             Console.WriteLine("1. Move to Location");
-            Console.WriteLine("2. Check Inventory");
-            Console.WriteLine("3. Rest");
-            Console.WriteLine("4. Save Game");
-            Console.WriteLine("5. Return to Main Menu");
+            Console.WriteLine("2. Use Skill");
+            Console.WriteLine("3. Check Inventory");
+            Console.WriteLine("4. Rest");
+            Console.WriteLine("5. Save Game");
+            Console.WriteLine("6. Return to Main Menu");
             Console.Write("Select an action: ");
 
             string input = Console.ReadLine() ?? "";
@@ -165,19 +166,22 @@ namespace RuleForge
                     SelectLocation();
                     break;
                 case "2":
-                    HandleInventoryInput();
+                    SelectSkill();
                     break;
                 case "3":
+                    HandleInventoryInput();
+                    break;
+                case "4":
                     // TODO: Rest 시스템이 구현되지 않았습니다.
                     // 필요한 기반 작업: HP/MP 회복 로직, 시간 경과 시스템, 안전 지역 확인
                     Console.WriteLine("휴식 시스템이 아직 구현되지 않았습니다.");
                     break;
-                case "4":
+                case "5":
                     // TODO: 저장/로드 시스템이 구현되지 않았습니다.
                     // 필요한 기반 작업: 게임 상태 직렬화, 파일 I/O, 세이브 슬롯 관리
                     Console.WriteLine("저장 시스템이 아직 구현되지 않았습니다.");
                     break;
-                case "5":
+                case "6":
                     _currentActivity = null;
                     break;
                 default:
@@ -329,19 +333,55 @@ namespace RuleForge
         /// </summary>
         private void SelectSkill()
         {
-            // TODO: 스킬 시스템이 구현되지 않았습니다.
-            // 필요한 기반 작업:
-            // 1. Skill 클래스 생성 (스킬 이름, 설명, 효과, MP/리소스 소모량)
-            // 2. Player에 스킬 목록 추가 (List<Skill> PlayerSkills)
-            // 3. 스킬 사용 로직 (타겟 선택, 효과 적용, 리소스 소모)
-            // 4. 직업별/레벨별 스킬 습득 시스템
+            if (_currentPlayer == null)
+            {
+                Console.WriteLine("플레이어 정보가 없습니다.");
+                return;
+            }
 
-            Console.WriteLine("스킬 시스템이 아직 구현되지 않았습니다.");
+            // 탐험 중에는 자기 자신 대상 스킬만 사용 가능
+            var selfSkills = _currentPlayer.PlayerSkills
+                .FindAll(s => s.TargetType == SkillTargetType.Self);
 
-            // 기존 하드코딩 로직은 제거됨
-            // if (_currentPlayer == null) { ... }
-            // var skills = _currentPlayer.GetAvailableSkills();
-            // ...
+            if (selfSkills.Count == 0)
+            {
+                Console.WriteLine("사용 가능한 스킬이 없습니다.");
+                return;
+            }
+
+            int currentMp = _currentPlayer.CommonAttributes.GetStatus("MP")?.StatusValue ?? 0;
+            int currentHp = _currentPlayer.CommonAttributes.GetStatus("HP")?.StatusValue ?? 0;
+            Console.WriteLine($"\n===== 스킬 사용 ===== (HP: {currentHp} / MP: {currentMp})");
+
+            for (int i = 0; i < selfSkills.Count; i++)
+            {
+                var skill = selfSkills[i];
+                bool canUse = skill.CanUse(_currentPlayer);
+                string label = canUse
+                    ? $"{i + 1}. {skill.SkillName} (MP {skill.MpCost}) - {skill.Description}"
+                    : $"{i + 1}. {skill.SkillName} (MP 부족)";
+                Console.WriteLine(label);
+            }
+            Console.WriteLine($"{selfSkills.Count + 1}. 돌아가기");
+            Console.Write("선택: ");
+
+            string input = Console.ReadLine() ?? "";
+            if (int.TryParse(input, out int selected) && selected >= 1 && selected <= selfSkills.Count)
+            {
+                var skill = selfSkills[selected - 1];
+                if (!skill.CanUse(_currentPlayer))
+                {
+                    Console.WriteLine("MP가 부족합니다!");
+                    return;
+                }
+
+                var logs = skill.Use(_currentPlayer, _currentPlayer);
+                Console.WriteLine($"\n{_currentPlayer.Name}은(는) {skill.SkillName}을(를) 사용했다!");
+                foreach (var log in logs)
+                {
+                    Console.WriteLine(log);
+                }
+            }
         }
 
         /// <summary>
