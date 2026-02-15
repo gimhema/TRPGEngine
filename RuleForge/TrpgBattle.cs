@@ -76,15 +76,19 @@ namespace RuleForge
             {
                 OnSelect = (s) => PlayerAttack(s)
             });
-            state.AddChoice(new TrpgChoice("2", "2. 방어")
+            state.AddChoice(new TrpgChoice("2", "2. 스킬")
+            {
+                OnSelect = (s) => ShowSkillMenu(s)
+            });
+            state.AddChoice(new TrpgChoice("3", "3. 방어")
             {
                 OnSelect = (s) => PlayerDefend(s)
             });
-            state.AddChoice(new TrpgChoice("3", "3. 아이템 사용")
+            state.AddChoice(new TrpgChoice("4", "4. 아이템 사용")
             {
                 OnSelect = (s) => ShowItemMenu(s)
             });
-            state.AddChoice(new TrpgChoice("4", "4. 도망치기")
+            state.AddChoice(new TrpgChoice("5", "5. 도망치기")
             {
                 OnSelect = (s) => AttemptFlee(s)
             });
@@ -120,6 +124,78 @@ namespace RuleForge
         {
             IsPlayerDefending = true;
             AddLog($"{Player.Name}은(는) 방어 자세를 취했다!");
+            EnemyTurn(state);
+        }
+
+        /// <summary>
+        /// 스킬 선택 메뉴를 표시한다.
+        /// </summary>
+        public void ShowSkillMenu(TrpgGameState state)
+        {
+            var skills = Player.PlayerSkills;
+
+            if (skills.Count == 0)
+            {
+                AddLog("습득한 스킬이 없다!");
+                SetupPlayerTurn(state);
+                return;
+            }
+
+            int currentMp = GetStatValue(Player, "MP");
+            state.NarrativeText = BuildBattleNarrative() + $"\n\n[스킬 선택] (MP: {currentMp})";
+            state.ClearChoices();
+
+            int index = 1;
+            for (int i = 0; i < skills.Count; i++)
+            {
+                int skillIndex = i;
+                var skill = skills[i];
+                bool canUse = skill.CanUse(Player);
+                string label = canUse
+                    ? $"{index}. {skill.SkillName} (MP {skill.MpCost}) - {skill.Description}"
+                    : $"{index}. {skill.SkillName} (MP 부족)";
+
+                state.AddChoice(new TrpgChoice(index.ToString(), label)
+                {
+                    OnSelect = (s) =>
+                    {
+                        if (!canUse)
+                        {
+                            AddLog("MP가 부족하다!");
+                            ShowSkillMenu(s);
+                            return;
+                        }
+                        UseSkill(s, skills[skillIndex]);
+                    }
+                });
+                index++;
+            }
+
+            state.AddChoice(new TrpgChoice(index.ToString(), $"{index}. 돌아가기")
+            {
+                OnSelect = (s) => SetupPlayerTurn(s)
+            });
+        }
+
+        /// <summary>
+        /// 스킬을 사용한다. MP 소모 후 효과를 적용하고 적 턴으로 넘어간다.
+        /// </summary>
+        private void UseSkill(TrpgGameState state, TrpgSkill skill)
+        {
+            AddLog($"{Player.Name}은(는) {skill.SkillName}을(를) 사용했다!");
+
+            var logs = skill.Use(Player, CurrentEnemy);
+            foreach (var log in logs)
+            {
+                AddLog(log);
+            }
+
+            if (GetStatValue(CurrentEnemy, "HP") <= 0)
+            {
+                Victory(state);
+                return;
+            }
+
             EnemyTurn(state);
         }
 
