@@ -289,19 +289,39 @@ namespace RuleForge
                 Console.WriteLine();
                 Console.WriteLine($"[{player.Name}] Lv.{player.playerProfile.PlayerLevel} {player.playerProfile.job}");
 
-                // 스탯 표시
+                // HP/MP 표시
                 var hp = player.CommonAttributes.GetStatus("HP");
                 var mp = player.CommonAttributes.GetStatus("MP");
+                var atk = player.CommonAttributes.GetStatus("ATK");
+                var def = player.CommonAttributes.GetStatus("DEF");
+                var spd = player.CommonAttributes.GetStatus("SPD");
 
                 if (hp != null)
                 {
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.Write($"HP: {hp.StatusValue} ");
+                    Console.ResetColor();
                 }
                 if (mp != null)
                 {
-                    Console.Write($"MP: {mp.StatusValue}");
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write($"MP: {mp.StatusValue} ");
+                    Console.ResetColor();
                 }
+                if (atk != null) Console.Write($"ATK: {atk.StatusValue} ");
+                if (def != null) Console.Write($"DEF: {def.StatusValue} ");
+                if (spd != null) Console.Write($"SPD: {spd.StatusValue}");
                 Console.WriteLine();
+
+                // 스킬 보유 수 표시
+                if (player.PlayerSkills.Count > 0)
+                {
+                    Console.Write($"스킬: {player.PlayerSkills.Count}개");
+                    int usable = player.GetUsableSkills().Count;
+                    if (usable < player.PlayerSkills.Count)
+                        Console.Write($" (사용 가능: {usable}개)");
+                    Console.WriteLine();
+                }
             }
         }
 
