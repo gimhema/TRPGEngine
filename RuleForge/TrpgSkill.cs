@@ -166,29 +166,37 @@ namespace RuleForge
     }
 
     /// <summary>
-    /// 기본 스킬 데이터 정의
+    /// 스킬 데이터 저장소. 룰북 리소스에서 파싱된 스킬 데이터를 관리한다.
     /// </summary>
     public static class TrpgSkillData
     {
+        private static readonly List<TrpgSkill> StarterSkills = new List<TrpgSkill>();
+        private static readonly List<TrpgSkill> AdvancedSkills = new List<TrpgSkill>();
+
+        /// <summary>
+        /// 룰북 리소스에서 파싱된 스킬 데이터를 등록한다.
+        /// TODO: RulebookParser에서 스킬 데이터를 파싱한 후 이 메서드를 호출하여 등록
+        /// </summary>
+        public static void RegisterStarterSkill(TrpgSkill skill)
+        {
+            StarterSkills.Add(skill);
+        }
+
+        /// <summary>
+        /// 룰북 리소스에서 파싱된 상위 스킬 데이터를 등록한다.
+        /// TODO: RulebookParser에서 스킬 데이터를 파싱한 후 이 메서드를 호출하여 등록
+        /// </summary>
+        public static void RegisterAdvancedSkill(TrpgSkill skill)
+        {
+            AdvancedSkills.Add(skill);
+        }
+
         /// <summary>
         /// 게임 시작 시 플레이어가 습득하는 기본 스킬 목록
         /// </summary>
         public static List<TrpgSkill> GetStarterSkills()
         {
-            return new List<TrpgSkill>
-            {
-                // 공격 스킬: 강타 - ATK에 +10 위력 추가
-                new TrpgSkill("강타", "강력한 일격을 가한다", 8, SkillTargetType.Enemy)
-                    .AddEffect(new SkillEffect(SkillEffectType.Damage, 10)),
-
-                // 회복 스킬: 치유 - HP 30 회복
-                new TrpgSkill("치유", "생명력을 회복한다", 12, SkillTargetType.Self)
-                    .AddEffect(new SkillEffect(SkillEffectType.Heal, 30)),
-
-                // 버프 스킬: 집중 - ATK 5 증가
-                new TrpgSkill("집중", "정신을 집중하여 공격력을 높인다", 6, SkillTargetType.Self)
-                    .AddEffect(new SkillEffect(SkillEffectType.Buff, 5, "ATK")),
-            };
+            return new List<TrpgSkill>(StarterSkills);
         }
 
         /// <summary>
@@ -196,29 +204,16 @@ namespace RuleForge
         /// </summary>
         public static List<TrpgSkill> GetAdvancedSkills()
         {
-            return new List<TrpgSkill>
-            {
-                // 강공격: ATK에 +25 위력
-                new TrpgSkill("파쇄", "적의 방어를 무시하는 강력한 공격", 18, SkillTargetType.Enemy)
-                    { RequiredLevel = 3 }
-                    .AddEffect(new SkillEffect(SkillEffectType.Damage, 25)),
+            return new List<TrpgSkill>(AdvancedSkills);
+        }
 
-                // 상위 회복: HP 60 회복
-                new TrpgSkill("대치유", "강력한 치유 마법", 22, SkillTargetType.Self)
-                    { RequiredLevel = 3 }
-                    .AddEffect(new SkillEffect(SkillEffectType.Heal, 60)),
-
-                // 디버프: 적 DEF 5 감소
-                new TrpgSkill("약화", "적의 방어력을 약화시킨다", 10, SkillTargetType.Enemy)
-                    { RequiredLevel = 2 }
-                    .AddEffect(new SkillEffect(SkillEffectType.Debuff, 5, "DEF")),
-
-                // 복합 스킬: 데미지 + 자기 HP 회복
-                new TrpgSkill("흡혈", "적을 공격하고 생명력을 흡수한다", 15, SkillTargetType.Enemy)
-                    { RequiredLevel = 4 }
-                    .AddEffect(new SkillEffect(SkillEffectType.Damage, 8))
-                    .AddEffect(new SkillEffect(SkillEffectType.Heal, 15)),
-            };
+        /// <summary>
+        /// 등록된 모든 스킬 데이터를 초기화한다.
+        /// </summary>
+        public static void Clear()
+        {
+            StarterSkills.Clear();
+            AdvancedSkills.Clear();
         }
     }
 }
