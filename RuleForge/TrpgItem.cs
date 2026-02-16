@@ -11,10 +11,16 @@ namespace RuleForge
         public string ItemName { get; set; }
         public string ItemDescription { get; set; }
 
-        public TrpgItem(string name, string description = "")
+        /// <summary>
+        /// 아이템 기본 가격 (구매가). 판매가는 SellRatio를 곱한 값.
+        /// </summary>
+        public int Price { get; set; }
+
+        public TrpgItem(string name, string description = "", int price = 0)
         {
             ItemName = name;
             ItemDescription = description;
+            Price = price;
         }
 
         public void Use()
@@ -34,7 +40,7 @@ namespace RuleForge
         }
 
         private Dictionary<string, TrpgStatus> EquipmentStatuses = new Dictionary<string, TrpgStatus>();
-        public Equipment(string name, string description = "") : base(name, description)
+        public Equipment(string name, string description = "", int price = 0) : base(name, description, price)
         {
 
         }           
@@ -54,9 +60,9 @@ namespace RuleForge
     {
         public int Quantity { get; set; }
 
-        public Consumable(string name, string description = "") : base(name, description)
+        public Consumable(string name, string description = "", int price = 0) : base(name, description, price)
         {
-            
+
         }
 
         // 부모 클래스의  Use 메서드를 오버라이드
@@ -77,7 +83,7 @@ namespace RuleForge
 
     public class KeyItem : TrpgItem
     {
-        public KeyItem(string name, string description = "") : base(name, description)
+        public KeyItem(string name, string description = "", int price = 0) : base(name, description, price)
         {
 
         }

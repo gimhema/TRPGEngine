@@ -141,9 +141,15 @@ namespace RuleForge
         public PlayerEquipments playerEquipments { get; set; } = new PlayerEquipments();
         public List<TrpgSkill> PlayerSkills { get; set; } = new List<TrpgSkill>();
 
+        /// <summary>
+        /// 플레이어 소지금
+        /// </summary>
+        public int Gold { get; set; }
+
         public TrpgPlayer(string name, string description = "", string className = "") : base(name, description)
         {
             playerClass = new PlayerClass(className);
+            Gold = 0;
         }
 
         /// <summary>

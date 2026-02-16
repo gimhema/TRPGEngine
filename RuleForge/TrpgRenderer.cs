@@ -311,6 +311,9 @@ namespace RuleForge
                 if (atk != null) Console.Write($"ATK: {atk.StatusValue} ");
                 if (def != null) Console.Write($"DEF: {def.StatusValue} ");
                 if (spd != null) Console.Write($"SPD: {spd.StatusValue}");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write($"  Gold: {player.Gold}");
+                Console.ResetColor();
                 Console.WriteLine();
 
                 // 스킬 보유 수 표시
