@@ -49,7 +49,7 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 3. **TrpgGameLogic** ([TrpgGameLogic.cs:122](TrpgGameLogic.cs#L122)) - 비즈니스 로직 (싱글톤)
    - 챕터, 퀘스트, 활동 관리
-   - 플레이어 생성 및 관리 처리 (기본 스탯: HP 100, MP 50, ATK 15, DEF 10, SPD 10)
+   - 플레이어 생성 및 관리 처리 (초기 스탯은 `TrpgGameConfig.PlayerDefault.InitialStats`에서 로드)
    - WorldManager를 내장하여 월드 로드/조회/위치 진입 관리
    - `StartBattle()`: 전투 개시 (TrpgBattle 생성, Combat 씬 전환, 콜백 기반 종료 처리)
    - 현재 씬 타입에 따른 입력 처리
@@ -117,19 +117,22 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 ### 플레이어 및 아이템
 
-1. **TrpgPlayer** ([TrpgPlayer.cs:140](TrpgPlayer.cs#L140)) - TrpgActor를 확장
+1. **TrpgPlayer** ([TrpgPlayer.cs:136](TrpgPlayer.cs#L136)) - TrpgActor를 확장
    - PlayerProfile: 나이, 성별, 성격, 직업, 배경 스토리, 레벨
    - PlayerClass: 캐릭터 클래스 시스템
    - PlayerItemBag: 소비템, 장비, 키 아이템 인벤토리
    - PlayerEquipments: 장착된 아이템 관리
+   - Gold: 플레이어 소지금
+   - PlayerSkills: 습득한 스킬 목록
 
 2. **TrpgActor** - 캐릭터(플레이어, NPC, 적)의 기본 클래스
    - CommonAttributes: 동적 상태 속성 (HP, MP, ATK, DEF, SPD)
 
-3. **아이템 시스템** - 세 가지 아이템 타입
+3. **아이템 시스템** ([TrpgItem.cs](TrpgItem.cs)) - 세 가지 아이템 타입
    - Equipment (장비): 장착/해제 가능
    - Consumable (소비템): 일회용 또는 수량 기반
    - KeyItem (키 아이템): 퀘스트 관련 아이템
+   - 모든 아이템에 `Price` 속성 (구매가) 지원
 
 ### 씬 시스템
 
@@ -258,54 +261,93 @@ dotnet add package LLamaSharp.Backend.Cpu
 - NPC 대화 시스템 미구현 (Establishment에서 NPC 선택까지만 가능)
 - Field.Gathering() 구현 (플레이어 액션 시스템 필요)
 
+### 스킬 시스템 ✅
+**위치**: [TrpgSkill.cs](TrpgSkill.cs), [TrpgBattle.cs](TrpgBattle.cs), [TrpgPlayer.cs](TrpgPlayer.cs)
+
+턴제 전투에 통합된 스킬 시스템이 구현되었습니다:
+
+**핵심 클래스**:
+- **TrpgSkill** ([TrpgSkill.cs:61](TrpgSkill.cs#L61)) - 스킬 정의 (이름, 설명, MP 소모, 타겟 타입, 효과 목록, 필요 레벨)
+- **SkillEffect** ([TrpgSkill.cs:30](TrpgSkill.cs#L30)) - 스킬 효과 (Damage, Heal, MpRestore, Buff, Debuff)
+- **TrpgSkillData** ([TrpgSkill.cs:171](TrpgSkill.cs#L171)) - 스킬 데이터 저장소 (룰북 파싱 대응)
+  - `RegisterStarterSkill()` / `RegisterAdvancedSkill()`: 룰북에서 파싱된 스킬 등록
+  - `GetStarterSkills()` / `GetAdvancedSkills()`: 등록된 스킬 조회
+
+**전투 통합**:
+- 전투 메뉴에서 "스킬" 선택 → 스킬 목록 표시 (MP 확인) → 사용 → 효과 적용 → 적 턴
+- `TrpgBattle.ShowSkillMenu()`, `TrpgBattle.UseSkill()` 구현 완료
+
+**플레이어 통합**:
+- `TrpgPlayer.PlayerSkills`: 습득한 스킬 목록
+- `LearnSkill()`, `ForgetSkill()`, `GetUsableSkills()` 구현 완료
+- 플레이어 생성 시 `TrpgSkillData.GetStarterSkills()`에서 기본 스킬 자동 습득
+
+**향후 확장 가능 사항**:
+- 직업별/레벨별 스킬 습득 시스템
+- 스킬 업그레이드/강화 시스템
+- Buff/Debuff 지속 턴 처리
+
+### 상점 시스템 ✅
+**위치**: [TrpgShop.cs](TrpgShop.cs), [TrpgItem.cs](TrpgItem.cs), [TrpgPlayer.cs](TrpgPlayer.cs)
+
+TrpgGameState/TrpgChoice 기반 상점 시스템이 구현되었습니다:
+
+**핵심 클래스**:
+- **TrpgShop** ([TrpgShop.cs](TrpgShop.cs)) - 상점 로직 (구매/판매 UI)
+  - `Merchandise`: 상점 판매 아이템 목록
+  - `SellRatio`: 판매 시 가격 비율 (기본 0.5 → 구매가의 50%)
+  - `Enter(state)`: 상점 진입 (Shop 씬 전환)
+  - `ShowBuyMenu()` → `BuyItem()`: 상품 목록에서 구매 (골드 차감, 아이템 복제 지급)
+  - `ShowSellMenu()` → `SellConsumable()` / `SellEquipment()`: 보유 아이템 판매 (골드 획득)
+
+**연관 변경사항**:
+- `TrpgItem.Price`: 모든 아이템에 가격 속성 추가
+- `TrpgPlayer.Gold`: 플레이어 소지금 속성 추가
+- `TrpgRenderer.RenderPlayerStatus()`: 골드 표시 (노란색)
+
+**사용법**:
+- Village의 Establishment에서 `shop.Enter(state)` 호출로 상점 진입
+- Shop 씬 렌더링은 기존 `TrpgRenderer.RenderShop()` 활용
+
+**향후 확장 가능 사항**:
+- 상점 인벤토리 재고 제한 / 리필 시스템
+- 할인, 흥정 시스템
+- 전투 보상에 골드 추가
+
+### 게임 설정 시스템 (데이터 기반 전환) ✅
+**위치**: [TrpgGameConfig.cs](TrpgGameConfig.cs)
+
+하드코딩된 게임 밸런스 값을 중앙 관리하는 설정 시스템이 구현되었습니다:
+
+- **BattleConfig**: 데미지 공식 파라미터, 도망 확률, 방어 효과, 전투 로그 표시 수
+- **PlayerDefaultConfig**: 플레이어 초기 스탯(`InitialStats` Dictionary), 기본 프로필 값
+- `TrpgGameConfig.SetBattleConfig()` / `SetPlayerDefaultConfig()`: 룰북 파싱 결과로 설정 교체
+- 모든 전투 계산과 플레이어 생성이 `TrpgGameConfig`를 참조
+
+**TODO**: RulebookParser 구현 시 `TrpgGameConfig`에 파싱 결과를 주입
+
 ## 미구현 시스템 (우선순위별)
 
-### 핵심 게임플레이 시스템
+### 핵심 시스템
 
-#### 1. 전투 시스템 ✅ (구현 완료)
-턴제 전투 시스템이 구현되었습니다. 자세한 내용은 위의 "구현된 시스템 > 전투 시스템" 섹션을 참조하세요.
+#### 1. 룰북 리소스 파서 🔴
+**필요 작업**:
+- 룰북 파일 포맷 결정 (JSON 등)
+- `RulebookParser` 구현 ([TrpgRule.cs](TrpgRule.cs)에 골격 존재)
+- 스킬/아이템/적/월드/밸런스 데이터를 룰북에서 파싱하여 각 시스템에 등록
+- `TrpgGameConfig`, `TrpgSkillData` 등에 파싱 결과 주입
 
+#### 2. 전투 시스템 확장 🟡
 **향후 확장 가능 사항**:
 - 경험치 및 레벨업 시스템
 - 장비 스탯 반영 (Equipment의 EquipmentStatuses를 전투 계산에 반영)
 - 크리티컬 히트, 회피 등 추가 전투 메커니즘
 - 소비 아이템의 실제 효과 구현 (HP/MP 회복 등)
-
-#### 2. 스킬 시스템 🔴
-**필요 작업**:
-- Skill 클래스 생성 (이름, 설명, 효과, MP/리소스 소모량, 타겟 타입)
-- Player에 스킬 목록 추가 (List<Skill> PlayerSkills)
-- 스킬 사용 로직 (타겟 선택, 효과 적용, 리소스 소모)
-- 직업별/레벨별 스킬 습득 시스템
-- 스킬 업그레이드/강화 시스템
-
-**참고**: [TrpgInterface.cs:338-353](TrpgInterface.cs#L338-L353) SelectSkill에 TODO 주석 존재
-
-#### 3. 월드/위치 시스템 ✅ (구현 완료)
-월드 시스템과 던전-전투 통합이 구현되었습니다. 자세한 내용은 위의 "구현된 시스템 > 월드/던전 시스템" 섹션을 참조하세요.
-
-**향후 확장 가능 사항**:
-- 위치별 Activity 타입 매핑 (Dungeon → Combat, Village → Social)
-- Chapter/Quest 시스템과 연동 (특정 위치 잠금/해금)
-- Field.Gathering() 구현 (플레이어 액션 시스템 필요)
-
-### 경제 및 거래 시스템
-
-#### 4. 상점 시스템 🟡
-**필요 작업**:
-- Shop 클래스 생성 (상점 이름, 판매 아이템 목록, 가격 데이터)
-- Player에 Gold/Currency 시스템 추가
-- 상점별 판매 아이템 목록 데이터 구조
-- 구매/판매 가격 계산 로직 (할인, 흥정 등)
-- 상점 인벤토리 관리 (재고 제한, 리필 시스템)
-
-**참고**:
-- [TrpgInterface.cs:358-372](TrpgInterface.cs#L358-L372) BuyItem에 TODO 주석
-- [TrpgInterface.cs:377-428](TrpgInterface.cs#L377-L428) SellItem은 구현됨 (골드 추가 로직만 필요)
+- 전투 보상에 골드 추가
 
 ### 스토리 및 상호작용 시스템
 
-#### 5. NPC 대화 시스템 🟡
+#### 3. NPC 대화 시스템 🟡 (LLM 통합과 함께 구현 예정)
 **필요 작업**:
 - NPC 클래스 확장 (TrpgActor 기반)
 - 대화 트리 구조 (DialogueNode, 선택지 분기)
@@ -315,7 +357,7 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 **참고**: [TrpgInterface.cs:217-220](TrpgInterface.cs#L217-L220) HandleSocialInput "Talk" 케이스
 
-#### 6. 퀘스트 수락/관리 시스템 🟡
+#### 4. 퀘스트 수락/관리 시스템 🟡 (LLM 통합과 함께 구현 예정)
 **필요 작업**:
 - NPC와 퀘스트 연결 (NPC가 제공하는 퀘스트 목록)
 - 퀘스트 수락 조건 확인 (레벨, 선행 퀘스트, 아이템 보유 등)
@@ -328,7 +370,7 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 ### 게임 시스템
 
-#### 7. 저장/로드 시스템 🟢
+#### 5. 저장/로드 시스템 🟢
 **필요 작업**:
 - 게임 상태 직렬화 (JSON/Binary)
 - 파일 I/O (세이브 파일 읽기/쓰기)
@@ -341,7 +383,7 @@ dotnet add package LLamaSharp.Backend.Cpu
 - [TrpgInterface.cs:100-102](TrpgInterface.cs#L100-L102) Load Game
 - [TrpgInterface.cs:189-192](TrpgInterface.cs#L189-L192) Save Game
 
-#### 8. 휴식 시스템 🟢
+#### 6. 휴식 시스템 🟢
 **필요 작업**:
 - HP/MP 회복 로직
 - 시간 경과 시스템 (선택적)
@@ -350,7 +392,7 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 **참고**: [TrpgInterface.cs:185-187](TrpgInterface.cs#L185-L187) Rest 케이스
 
-#### 9. 설정 시스템 🟢
+#### 7. 설정 시스템 🟢
 **필요 작업**:
 - 옵션 관리 (음량, 난이도, 텍스트 속도 등)
 - 키 바인딩 설정
@@ -372,13 +414,13 @@ dotnet add package LLamaSharp.Backend.Cpu
 ## 개발 우선순위 가이드
 
 ### ✅ 구현 완료
-전투 시스템, 월드/던전 시스템, 아이템/인벤토리 시스템
+전투 시스템, 스킬 시스템, 월드/던전 시스템, 아이템/인벤토리 시스템, 상점 시스템, 게임 설정 시스템 (데이터 기반 전환)
 
-### 🔴 높음 (핵심 게임플레이)
-스킬 시스템 - 전투의 전략적 깊이를 추가하는 데 필수
+### 🔴 높음 (핵심 시스템)
+룰북 리소스 파서 - 모든 게임 데이터를 룰북에서 로드하는 데 필수 (현재 TrpgGameConfig, TrpgSkillData 등이 파싱 대기 상태)
 
 ### 🟡 중간 (컨텐츠 확장)
-상점, NPC 대화, 퀘스트 관리 - 게임 깊이와 재미를 추가
+NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
 
 ### 🟢 낮음 (편의 기능)
 저장/로드, 휴식, 설정 - 사용자 경험 개선
