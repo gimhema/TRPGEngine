@@ -247,9 +247,9 @@ namespace RuleForge
             int playerSpd = GetStatValue(Player, "SPD");
             int enemySpd = GetStatValue(CurrentEnemy, "SPD");
 
-            // 기본 50% + SPD 차이당 ±5%, 최소 10% ~ 최대 90%
-            int fleeChance = 50 + (playerSpd - enemySpd) * 5;
-            fleeChance = Math.Clamp(fleeChance, 10, 90);
+            var cfg = TrpgGameConfig.Battle;
+            int fleeChance = cfg.FleeBaseChance + (playerSpd - enemySpd) * cfg.FleeChancePerSpd;
+            fleeChance = Math.Clamp(fleeChance, cfg.FleeMinChance, cfg.FleeMaxChance);
 
             if (_random.Next(100) < fleeChance)
             {
@@ -275,10 +275,9 @@ namespace RuleForge
             int playerDef = GetStatValue(Player, "DEF");
             int damage = CalculateDamage(enemyAtk, playerDef);
 
-            // 방어 시 데미지 50% 감소
             if (IsPlayerDefending)
             {
-                damage = Math.Max(1, damage / 2);
+                damage = Math.Max(TrpgGameConfig.Battle.MinDamage, (int)(damage * TrpgGameConfig.Battle.DefendDamageReduction));
                 AddLog($"{CurrentEnemy.Name}의 공격! {Player.Name}은(는) 방어하여 {damage}의 데미지!");
             }
             else
@@ -360,11 +359,11 @@ namespace RuleForge
         /// </summary>
         public static int CalculateDamage(int attackPower, int defensePower)
         {
-            int baseDamage = attackPower - (defensePower / 2);
-            // ±20% 랜덤 편차 (0.8 ~ 1.2)
-            double variance = 0.8 + _random.NextDouble() * 0.4;
+            var cfg = TrpgGameConfig.Battle;
+            int baseDamage = attackPower - (int)(defensePower * cfg.DefenseRatio);
+            double variance = cfg.DamageVarianceMin + _random.NextDouble() * (cfg.DamageVarianceMax - cfg.DamageVarianceMin);
             int finalDamage = (int)(baseDamage * variance);
-            return Math.Max(1, finalDamage);
+            return Math.Max(cfg.MinDamage, finalDamage);
         }
 
         // ─── 보상 처리 ───
@@ -441,8 +440,7 @@ namespace RuleForge
             sb.AppendLine($"─── 턴 {TurnCount} ───");
             sb.AppendLine();
 
-            // 최근 전투 로그 (최대 5개)
-            int start = Math.Max(0, BattleLog.Count - 5);
+            int start = Math.Max(0, BattleLog.Count - TrpgGameConfig.Battle.MaxVisibleBattleLog);
             for (int i = start; i < BattleLog.Count; i++)
             {
                 sb.AppendLine(BattleLog[i]);

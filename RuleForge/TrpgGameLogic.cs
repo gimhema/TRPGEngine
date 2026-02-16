@@ -205,23 +205,24 @@ namespace RuleForge
         /// <summary>
         /// 플레이어 생성
         /// </summary>
-        public TrpgPlayer CreatePlayer(string name, int age = 18, string gender = "Not Specified",
-            string personality = "Neutral", string job = "Adventurer", string backgroundStory = "A mysterious past.")
+        public TrpgPlayer CreatePlayer(string name, int age = 0, string gender = "",
+            string personality = "", string job = "", string backgroundStory = "")
         {
+            var cfg = TrpgGameConfig.PlayerDefault;
             var newPlayer = new TrpgPlayer(name);
-            newPlayer.playerProfile.age = age;
-            newPlayer.playerProfile.gender = gender;
-            newPlayer.playerProfile.personality = personality;
-            newPlayer.playerProfile.job = job;
-            newPlayer.playerProfile.backgroundStory = backgroundStory;
-            newPlayer.playerProfile.PlayerLevel = 1;
+            newPlayer.playerProfile.age = age > 0 ? age : 18;
+            newPlayer.playerProfile.gender = !string.IsNullOrEmpty(gender) ? gender : cfg.DefaultGender;
+            newPlayer.playerProfile.personality = !string.IsNullOrEmpty(personality) ? personality : cfg.DefaultPersonality;
+            newPlayer.playerProfile.job = !string.IsNullOrEmpty(job) ? job : cfg.DefaultJob;
+            newPlayer.playerProfile.backgroundStory = !string.IsNullOrEmpty(backgroundStory) ? backgroundStory : cfg.DefaultBackgroundStory;
+            newPlayer.playerProfile.PlayerLevel = cfg.DefaultLevel;
 
-            // 기본 스탯 설정
-            newPlayer.CommonAttributes.AddNewStatus("HP", 100);
-            newPlayer.CommonAttributes.AddNewStatus("MP", 50);
-            newPlayer.CommonAttributes.AddNewStatus("ATK", 15);
-            newPlayer.CommonAttributes.AddNewStatus("DEF", 10);
-            newPlayer.CommonAttributes.AddNewStatus("SPD", 10);
+            // 룰북에서 로드된 초기 스탯 적용
+            // TODO: RulebookParser에서 PlayerDefaultConfig.InitialStats를 설정
+            foreach (var stat in cfg.InitialStats)
+            {
+                newPlayer.CommonAttributes.AddNewStatus(stat.Key, stat.Value);
+            }
 
             // 기본 스킬 습득
             foreach (var skill in TrpgSkillData.GetStarterSkills())
