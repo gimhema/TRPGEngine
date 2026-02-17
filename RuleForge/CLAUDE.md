@@ -331,11 +331,30 @@ TrpgGameState/TrpgChoice 기반 상점 시스템이 구현되었습니다:
 ### 핵심 시스템
 
 #### 1. 룰북 리소스 파서 🔴
+**현재 상태**: 룰북 파일 포맷이 Markdown으로 결정되었으며, [RuleBook/](RuleBook/) 디렉토리에 리소스 파일 구조가 추가됨
+
+**룰북 리소스 파일 구조** ([RuleBook/](RuleBook/)):
+- `TR_0_Overview.md` - 룰북 개요 (게임 설정, 밸런스 파라미터 등)
+- `TR_1_World.md` - 월드 정의 (마을, 필드, 던전, 연결 관계)
+- `TR_2_Skill.md` - 스킬 정의 (스타터/고급 스킬, 효과, MP 소모)
+- `TR_3_Item.md` - 아이템 정의 (장비, 소비템, 키 아이템, 가격)
+- `TR_4_NPC.md` - NPC 정의 (성격, 대화, 위치)
+- `TR_5_Enemy.md` - 적 정의 (스탯, 보상, 인카운터 그룹)
+
+**현재 상태**: 모든 파일이 빈 상태 (포맷/스키마 정의 필요)
+
 **필요 작업**:
-- 룰북 파일 포맷 결정 (JSON 등)
+- 각 Markdown 파일의 파싱 포맷/스키마 설계
 - `RulebookParser` 구현 ([TrpgRule.cs](TrpgRule.cs)에 골격 존재)
-- 스킬/아이템/적/월드/밸런스 데이터를 룰북에서 파싱하여 각 시스템에 등록
-- `TrpgGameConfig`, `TrpgSkillData` 등에 파싱 결과 주입
+- Markdown 파싱 로직 구현 (섹션/테이블/리스트 기반)
+- 파싱 결과를 각 시스템에 주입:
+  - `TR_0_Overview.md` → `TrpgGameConfig` (BattleConfig, PlayerDefaultConfig)
+  - `TR_1_World.md` → `WorldManager.LoadWorldInfoByRuleBook()`
+  - `TR_2_Skill.md` → `TrpgSkillData` (RegisterStarterSkill/RegisterAdvancedSkill)
+  - `TR_3_Item.md` → 아이템 인스턴스 생성, 상점 Merchandise 등록
+  - `TR_4_NPC.md` → TrpgNPC 인스턴스 생성, Establishment 배치
+  - `TR_5_Enemy.md` → TrpgEnemy 인스턴스 생성, 던전 EnemyList 등록
+- `RuleForge.csproj`에 RuleBook 파일을 EmbeddedResource 또는 Content로 포함 설정
 
 #### 2. 전투 시스템 확장 🟡
 **향후 확장 가능 사항**:
@@ -405,11 +424,14 @@ TrpgGameState/TrpgChoice 기반 상점 시스템이 구현되었습니다:
 
 1. **Agent.cs** ([Agent.cs:9](Agent.cs#L9)) - 빈 클래스, 용도 불명확
 2. **OllamaAPI.cs** - 대체 LLM API 통합 (현재 사용되지 않음)
-3. **TrpgRule** ([TrpgRule.cs:22](TrpgRule.cs#L22)) - 룰 시스템 및 룰북 파서 미구현
-4. **GameStartPreprocess** ([Program.cs:110](Program.cs#L110)) - LLM 모델 로딩 및 룰 설정 미구현
-5. 멀티플레이어 클라이언트 모드 구현 누락
-6. TCP 서버와 게임 상태 통합 미완료
-7. WorldManager.LoadWorldInfoByRuleBook() - 룰북 기반 월드 자동 로딩 미구현
+3. **TrpgRule** ([TrpgRule.cs:22](TrpgRule.cs#L22)) - 룰 시스템 골격만 존재, Markdown 룰북 파서 구현 필요
+4. **TrpgNPC** ([TrpgNPC.cs](TrpgNPC.cs)) - TrpgActor 확장, InterAction/Trade/Communicate 메서드 비어있음
+5. **TrpgGameAction** ([TrpgGameAction.cs](TrpgGameAction.cs)) - 기본 액션 구조만 존재 (Name, Description, Target, Cost)
+6. **GameStartPreprocess** ([Program.cs:110](Program.cs#L110)) - LLM 모델 로딩 및 룰북 파싱/설정 미구현
+7. 멀티플레이어 클라이언트 모드 구현 누락
+8. TCP 서버와 게임 상태 통합 미완료
+9. WorldManager.LoadWorldInfoByRuleBook() - 룰북 기반 월드 자동 로딩 미구현
+10. `RuleForge.csproj`에 RuleBook/ 리소스 파일 빌드 포함 설정 누락
 
 ## 개발 우선순위 가이드
 
@@ -417,10 +439,41 @@ TrpgGameState/TrpgChoice 기반 상점 시스템이 구현되었습니다:
 전투 시스템, 스킬 시스템, 월드/던전 시스템, 아이템/인벤토리 시스템, 상점 시스템, 게임 설정 시스템 (데이터 기반 전환)
 
 ### 🔴 높음 (핵심 시스템)
-룰북 리소스 파서 - 모든 게임 데이터를 룰북에서 로드하는 데 필수 (현재 TrpgGameConfig, TrpgSkillData 등이 파싱 대기 상태)
+룰북 리소스 파서 - Markdown 포맷의 룰북 파일([RuleBook/](RuleBook/))이 추가됨, 파싱 포맷 설계 및 `RulebookParser` 구현 필요 (현재 TrpgGameConfig, TrpgSkillData 등이 파싱 대기 상태)
 
 ### 🟡 중간 (컨텐츠 확장)
 NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
 
 ### 🟢 낮음 (편의 기능)
 저장/로드, 휴식, 설정 - 사용자 경험 개선
+
+## 오늘의 할일 (2026-02-17)
+
+### 1. 룰북 Markdown 포맷/스키마 설계 🔴
+- 각 룰북 파일(TR_0 ~ TR_5)의 Markdown 구조 정의
+- 파싱 가능한 일관된 포맷 결정 (헤더, 테이블, 리스트, 키-값 등)
+- 예시 데이터 작성하여 각 파일에 채워넣기
+
+### 2. RulebookParser Markdown 파싱 구현 🔴
+- [TrpgRule.cs](TrpgRule.cs)의 `RulebookParser` 클래스 구현
+- Markdown 파일 읽기 및 섹션별 파싱 로직
+- 파싱 결과를 게임 오브젝트로 변환하는 팩토리 메서드
+
+### 3. 룰북 → 게임 시스템 주입 연결 🔴
+- `TR_0_Overview.md` → `TrpgGameConfig` (BattleConfig, PlayerDefaultConfig)
+- `TR_2_Skill.md` → `TrpgSkillData` 등록
+- `TR_3_Item.md` → 아이템 인스턴스 생성
+- `TR_5_Enemy.md` → TrpgEnemy 인스턴스 생성
+
+### 4. GameStartPreprocess 연결 🟡
+- [Program.cs:110](Program.cs#L110)의 `GameStartPreprocess()`에서 룰북 파싱 호출
+- 파싱된 데이터를 각 시스템 싱글톤에 주입
+
+### 5. RuleForge.csproj 리소스 설정 🟡
+- RuleBook/ 디렉토리의 .md 파일을 빌드 출력에 포함하도록 설정
+- EmbeddedResource 또는 Content/CopyToOutputDirectory 설정
+
+### 6. 월드 데이터 룰북 연동 🟢
+- `TR_1_World.md`에 월드 데이터 작성
+- `WorldManager.LoadWorldInfoByRuleBook()` 구현
+- `TR_4_NPC.md` 파싱 및 NPC 배치
