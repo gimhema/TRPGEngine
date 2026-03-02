@@ -1,20 +1,26 @@
 {
-    "SkillA":{
-        "SkillName":"",
-        "SkillTargetType":"",
-        "SkillEffectType":"",
-        "SkillStat": {
-            "ATK":0,
-            "DFN":0
+    "SkillInfo" : [
+        {
+            "SkillA":{
+                "SkillName":"",
+                "SkillTargetType":"",
+                "SkillEffectType":"",
+                "SkillStat": {
+                    "ATK":0,
+                    "DFN":0
+                }
+            }
+        },
+        {
+                "SkillB":    {
+                "SkillName":"",
+                "SkillTargetType":"",
+                "SkillEffectType":"",
+                "SkillStat": {
+                    "ATK":0,
+                    "DFN":0
+                }
+            }
         }
-    },
-    "SkillB":    {
-        "SkillName":"",
-        "SkillTargetType":"",
-        "SkillEffectType":"",
-        "SkillStat": {
-            "ATK":0,
-            "DFN":0
-        }
-    }
+    ]
 }
