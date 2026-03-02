@@ -1,15 +1,25 @@
 {
-    "ItemA": {
-        "Name":"",
-        "Type":"Equipment"
-    },
-    "ItemB": {
-        "Name":"",
-        "Type":"Consumable"
-    },
-    "ItemC": {
-        "Name":"",
-        "Type":"KeyItem"
-    }
+    "ItemInfo" : [
+        {
+            "ItemA": {
+                "Name":"",
+                "Type":"Equipment"
+            }
+        },
+        {
+            "ItemB": {
+                "Name":"",
+                "Type":"Consumable"
+            }
+        },
+        {
+            "ItemC": {
+                "Name":"",
+                "Type":"KeyItem"
+            }            
+        }
+
+    ]
+
 
 }
