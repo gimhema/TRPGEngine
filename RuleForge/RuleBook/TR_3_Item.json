@@ -3,19 +3,32 @@
         {
             "ItemA": {
                 "Name":"",
-                "Type":"Equipment"
+                "Type":"Equipment",
+                "Description" : "",
+                "Price" : 0,
+                "ItemStat" : {
+                    "ATK" : 0,
+                    "DFN" : 0
+                }
             }
         },
         {
             "ItemB": {
                 "Name":"",
-                "Type":"Consumable"
+                "Type":"Consumable",
+                "Description" : "",
+                "Price" : 0,
+                "ItemEffect" : {
+                    
+                }
             }
         },
         {
             "ItemC": {
                 "Name":"",
-                "Type":"KeyItem"
+                "Type":"KeyItem",
+                "Description" : "",
+                "Price" : 0
             }            
         }
 
