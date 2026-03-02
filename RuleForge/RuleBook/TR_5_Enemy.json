@@ -1,0 +1,22 @@
+{
+    "EnemyInfo" : [
+        {
+            "EnemyName " : "",
+            "Stat" : {
+                "LIFE" : 100,
+                "ATK" : 0,
+                "DFN" : 0
+            },
+            "RewardItemIds" : [0]
+        },
+        {
+            "EnemyName " : "",
+            "Stat" : {
+                "LIFE" : 100,
+                "ATK" : 0,
+                "DFN" : 0
+            },
+            "RewardItemIds" : [0]
+        }
+    ]
+}

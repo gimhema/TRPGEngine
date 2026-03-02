@@ -5,7 +5,7 @@
                 "SkillName":"",
                 "SkillTargetType":"",
                 "SkillEffectType":"",
-                "SkillStat": {
+                "Stat": {
                     "ATK":0,
                     "DFN":0
                 }
@@ -15,8 +15,8 @@
                 "SkillB":    {
                 "SkillName":"",
                 "SkillTargetType":"",
-                "SkillEffectType":"",
-                "SkillStat": {
+                "SkillEffectType":"", 
+                "Stat": {
                     "ATK":0,
                     "DFN":0
                 }

@@ -2,11 +2,11 @@
     "ItemInfo" : [
         {
             "ItemA": {
+                "Id" : 0,
                 "Name":"",
                 "Type":"Equipment",
                 "Description" : "",
-                "Price" : 0,
-                "ItemStat" : {
+                "Stat" : {
                     "ATK" : 0,
                     "DFN" : 0
                 }
@@ -14,21 +14,21 @@
         },
         {
             "ItemB": {
+                "Id" : 1,
                 "Name":"",
                 "Type":"Consumable",
                 "Description" : "",
-                "Price" : 0,
                 "ItemEffect" : {
-                    
+
                 }
             }
         },
         {
             "ItemC": {
+                "Id" : 2,
                 "Name":"",
                 "Type":"KeyItem",
-                "Description" : "",
-                "Price" : 0
+                "Description" : ""
             }            
         }
 

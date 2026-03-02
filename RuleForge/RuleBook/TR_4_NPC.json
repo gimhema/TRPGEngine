@@ -1,0 +1,21 @@
+{
+    "NPCInfo" : [
+        {
+            "Name" : "",
+            "Type" : "Normal",
+            "Personality" : ""
+        },
+        {
+            "Name" : "",
+            "Type" : "Trader",
+            "Personality" : "",
+            "TradeItems" : [0]
+        },
+        {
+            "Name" : "",
+            "Type" : "Quest",
+            "Personality" : "",
+            "QuestIds" : [ 0 ]
+        }
+    ]
+}
