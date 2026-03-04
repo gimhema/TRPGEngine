@@ -1,5 +1,39 @@
 {
     "Worlds" : [
+        {
+            "WorldName" : "",
+            "FieldInfo" : [
+                {
+                    "FieldName" : "",
+                    "Villages" : [],
+                    "Dungeons" : [],
+                    "Environment" : []
+                },
+                {
+                    "FieldName" : "",
+                    "Villages" : [],
+                    "Dungeons" : [],
+                    "Environment" : []
+                }
+            ]
+        },
+        {
+            "WorldName" : "",
+            "FieldInfo" : [
+                {
+                    "FieldName" : "",
+                    "Villages" : [],
+                    "Dungeons" : [],
+                    "Environment" : []
+                },
+                {
+                    "FieldName" : "",
+                    "Villages" : [],
+                    "Dungeons" : [],
+                    "Environment" : []
+                }
+            ]
+        }
 
     ]
 }
