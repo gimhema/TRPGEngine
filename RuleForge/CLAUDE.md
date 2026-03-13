@@ -462,42 +462,46 @@ NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
 - `WorldManager.LoadWorldInfoByRuleBook()` - 빈 메서드, 구현 필요
 - `GameStartPreprocess()` - LLM 로딩 및 룰북 파싱 모두 미구현
 
-## 오늘의 할일 (2026-03-13)
+## 오늘의 할일 (2026-03-13) - 완료된 항목
 
-### 1. RuleForge.csproj 리소스 설정 🔴
-- `RuleBook/*.json`, `RuleBook/*.md` 파일을 `Content` + `CopyToOutputDirectory: Always`로 설정
-- 빌드 시 출력 디렉토리에 RuleBook 폴더가 복사되도록 설정
+### ✅ 1. RuleForge.csproj 리소스 설정
+- `RuleBook/**/*` 파일을 `Content/CopyToOutputDirectory: Always`로 설정 완료
+- 빌드 시 출력 디렉토리에 RuleBook 폴더 복사 확인
 
-### 2. 룰북 JSON 파일에 실제 게임 데이터 입력 🔴
-- `TR_3_Item.json` - 기본 아이템 최소 3~5개 정의 (Equipment/Consumable/KeyItem 각 1개 이상)
-- `TR_5_Enemy.json` - 기본 적 최소 2~3개 정의 (스탯, 보상 아이템 ID 포함)
-- `TR_2_Skill.json` - 스타터 스킬 최소 2개 정의 (Damage/Heal 타입)
-- `TR_4_NPC.json` - NPC 최소 2개 정의 (Normal/Trader 타입)
-- `TR_1_0/1/2_World*.json` - 기본 월드 1개, 마을 1개, 던전 1개 데이터 입력
-- `TR_6_Quest.json` - 퀘스트 2~3개 정의
+### ✅ 2. 룰북 JSON 스키마 재설계 및 데이터 입력
+- 모든 JSON 파일을 배열 기반 구조로 재설계 (기존 SkillA/SkillB 방식 제거)
+- 아이템 5개, 적 3종, 스킬 4개(기본2/상급2), NPC 3명, 월드/마을/던전 각 1개, 퀘스트 2개 정의
 
-### 3. RulebookParser JSON 파서 구현 🔴
-- [TrpgRule.cs](TrpgRule.cs)의 `RulebookParser`를 JSON 파서로 재작성 (`System.Text.Json`)
-- 각 JSON 파일 파싱 메서드 구현:
-  - `ParseItems(string jsonPath)` → `List<TrpgItem>`
-  - `ParseEnemies(string jsonPath)` → `List<TrpgEnemy>`
-  - `ParseSkills(string jsonPath)` → `List<TrpgSkill>`
-  - `ParseNPCs(string jsonPath)` → `List<TrpgNPC>`
-  - `ParseWorld(...)` → World/Village/Dungeon 인스턴스
-  - `ParseQuests(string jsonPath)` → `List<Quest>`
+### ✅ 3. RulebookParser JSON 파서 구현
+- [TrpgRule.cs](TrpgRule.cs) 완전 재작성 (`System.Text.Json` 활용)
+- `TrpgItemRegistry` / `TrpgEnemyRegistry` 정적 레지스트리 추가
+- `ParseAll(worldMgr)` 단일 진입점, 순서 보장 (Items→Enemies→Skills→World→Quests)
 
-### 4. 파싱 결과 → 게임 시스템 주입 연결 🔴
-- `TR_2_Skill.json` → `TrpgSkillData.RegisterStarterSkill()`
-- `TR_3_Item.json` → 아이템 인스턴스 풀 생성 (ID 기반 조회용 Dictionary)
-- `TR_5_Enemy.json` → TrpgEnemy 인스턴스 풀, 던전 EnemyList 등록
-- `TR_1_0/1/2_World*.json` → `WorldManager.LoadWorldInfoByRuleBook()` 구현
-- `TR_6_Quest.json` → Quest 인스턴스 생성, Chapter에 등록
-- `TR_4_NPC.json` → TrpgNPC 인스턴스 생성, Establishment 배치
+### ✅ 4. GameStartPreprocess 연결 및 PlayerSetup 씬 완성
+- [Program.cs](Program.cs) `GameStartPreprocess()`에서 `TrpgGameLogic.Instance.LoadRulebook()` 호출
+- `TrpgGameLogic.LoadRulebook()` - 파서 호출 후 퀘스트를 챕터로 묶어 등록
+- `TrpgGameLogic.InitializeGame()` - PlayerSetup 선택지 구성 (이름 입력 / 기본 이름)
+- `TrpgGameLogic.ProcessInput()` - PlayerSetup에서 자유 이름 입력 처리
+- `TrpgGameLogic.GetStartingLocation()` - 첫 번째 Field 반환
+- `TrpgGameLogic.StartGame()` - 플레이어 생성 후 시작 필드로 자동 진입
 
-### 5. GameStartPreprocess 연결 🟡
-- [Program.cs:110](Program.cs#L110)의 `GameStartPreprocess()`에서 `RulebookParser` 호출
-- 파싱 결과를 `TrpgSkillData`, `WorldManager`, `TrpgGameConfig` 등에 주입
+**실행 흐름 (검증 완료)**:
+```
+룰북 파싱 → PlayerSetup (이름 입력) → 시작의 평원(Field) → 주변 탐색 → [시작 마을 / 초원 동굴]
+```
 
-### 6. TR_0_Overview.md 챕터 파싱 🟢
-- Markdown에서 챕터 목표 파싱 (`목표:[몬스터:이름]을 [처치]` 등 패턴)
-- `Chapter` 인스턴스 생성 및 `TrpgGameLogic.LoadChapters()` 연결
+## 다음 할일 (우선순위)
+
+### 🔴 높음
+1. **TR_0_Overview.md 챕터/스토리 파싱** - Markdown 챕터 목표 파싱 및 LLM 입력용 스토리 연동
+2. **NPC 대화 시스템** - `Establishment.Action()`에서 NPC 선택 시 실제 대화 출력 구현
+
+### 🟡 중간
+3. **경험치/레벨업 시스템** - 전투 승리 시 EXP 획득 및 레벨업
+4. **소비 아이템 실제 효과** - `Consumable`의 `Effect(HP/MP)` 데이터를 `UseItem` 시 실제 적용
+5. **필드 채집(Gathering)** - `Field.Gathering()`에서 `GatherableItems`를 실제로 지급
+
+### 🟢 낮음
+6. **저장/로드 시스템** - 게임 상태 JSON 직렬화
+7. **휴식 시스템** - HP/MP 회복
+8. **상점 NPC 연동** - Trader 타입 NPC가 `TrpgShop`을 통해 상점 진입

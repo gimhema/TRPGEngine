@@ -166,35 +166,113 @@ namespace RuleForge
         }
 
         /// <summary>
-        /// 게임 시작 (GameState 초기화)
+        /// 룰북 JSON 파일을 파싱하고 게임 시스템(스킬, 아이템, 적, 월드)을 초기화한다.
+        /// GameStartPreprocess()에서 호출.
+        /// </summary>
+        public void LoadRulebook()
+        {
+            var parser = new RulebookParser();
+            var quests = parser.ParseAll(WorldMgr);
+
+            // 파싱된 퀘스트로 기본 챕터 생성
+            if (quests.Count > 0)
+            {
+                var chapter = new Chapter("제1장: 모험의 시작");
+                foreach (var quest in quests)
+                    chapter.Quests.Add(quest);
+                Chapters.Add(chapter);
+            }
+        }
+
+        /// <summary>
+        /// 첫 번째 Field(시작 위치)를 반환한다.
+        /// </summary>
+        public WorldUnit? GetStartingLocation()
+        {
+            foreach (var world in WorldMgr.Worlds.Values)
+            {
+                if (world.units == null) continue;
+                foreach (var unit in world.units.Values)
+                {
+                    if (unit is Field) return unit;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 플레이어 생성 후 시작 위치로 이동. PlayerSetup 씬의 선택지 콜백에서 호출.
+        /// </summary>
+        private void StartGame(string playerName, TrpgGameState state)
+        {
+            var player = CreatePlayer(playerName);
+            state.CurrentPlayer = player;
+
+            if (Chapters.Count > 0)
+                state.CurrentChapter = Chapters[0];
+
+            var startLocation = GetStartingLocation();
+            if (startLocation != null)
+            {
+                state.ChangeScene(TrpgGameState.SceneType.Exploration);
+                startLocation.Action(state);
+            }
+            else
+            {
+                state.ChangeScene(TrpgGameState.SceneType.Exploration);
+                state.NarrativeText = $"환영합니다, {playerName}!\n월드 데이터가 없습니다. 룰북을 확인하세요.";
+                state.ClearChoices();
+            }
+        }
+
+        /// <summary>
+        /// 게임 시작 (GameState 초기화). 플레이어 설정 화면의 선택지를 구성한다.
         /// </summary>
         public void InitializeGame(TrpgGameState state)
         {
-            state.NarrativeText = "게임에 오신 것을 환영합니다!";
+            state.NarrativeText = "게임에 오신 것을 환영합니다!\n\n캐릭터를 생성하세요.";
             state.CurrentScene = TrpgGameState.SceneType.PlayerSetup;
+            state.ClearChoices();
+
+            state.AddChoice(new TrpgChoice("1", "1. 이름 입력하기")
+            {
+                OnSelect = (s) =>
+                {
+                    s.NarrativeText = "캐릭터 이름을 입력해주세요:";
+                    s.ClearChoices();
+                    s.SetCustomData("awaitingPlayerName", true);
+                }
+            });
+            state.AddChoice(new TrpgChoice("2", "2. 기본 이름으로 시작 (모험가)")
+            {
+                OnSelect = (s) => StartGame("모험가", s)
+            });
         }
-        
+
         public void DoAction(string actionName)
         {
             GameRule.DoAction(actionName);
         }
 
         /// <summary>
-        /// 입력 처리 (GameController에서 호출)
+        /// 입력 처리 (GameController에서 호출). 선택지로 처리 안 된 자유 입력을 받는다.
         /// </summary>
         public void ProcessInput(string input, TrpgGameState state)
         {
-            // 현재 씬에 따라 다르게 처리
             switch (state.CurrentScene)
             {
                 case TrpgGameState.SceneType.PlayerSetup:
-                    // 플레이어 설정 중에는 선택지를 통해 처리
+                    // 이름 입력 대기 중이면 입력값을 이름으로 사용
+                    bool awaitingName = state.GetCustomData<bool>("awaitingPlayerName");
+                    if (awaitingName && !string.IsNullOrWhiteSpace(input))
+                    {
+                        state.CustomData.Remove("awaitingPlayerName");
+                        StartGame(input.Trim(), state);
+                    }
                     break;
                 case TrpgGameState.SceneType.Exploration:
-                    // 탐험 중 입력 처리
                     break;
                 case TrpgGameState.SceneType.Combat:
-                    // 전투 중 입력 처리
                     break;
                 default:
                     state.NarrativeText = $"처리되지 않은 입력: {input}";

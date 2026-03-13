@@ -109,9 +109,10 @@ internal static class Program
 
     public static void GameStartPreprocess()
     {
-        // Load LLM Models . . .
+        // 룰북 JSON 파일 파싱 및 게임 시스템 초기화 (아이템/적/스킬/월드)
+        TrpgGameLogic.Instance.LoadRulebook();
 
-        // Setting TRPG Rule . . .
+        // TODO: Load LLM Models . . .
     }
 
     public static async Task Main(string[] args)
