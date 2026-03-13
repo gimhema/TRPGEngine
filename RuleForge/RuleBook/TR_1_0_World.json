@@ -1,39 +1,17 @@
 {
-    "Worlds" : [
+    "Worlds": [
         {
-            "WorldName" : "",
-            "FieldInfo" : [
+            "WorldName": "아르케아 대륙",
+            "WorldDescription": "모험가들이 활동하는 광활한 대륙.",
+            "Fields": [
                 {
-                    "FieldName" : "",
-                    "Villages" : [],
-                    "Dungeons" : [],
-                    "Environment" : []
-                },
-                {
-                    "FieldName" : "",
-                    "Villages" : [],
-                    "Dungeons" : [],
-                    "Environment" : []
-                }
-            ]
-        },
-        {
-            "WorldName" : "",
-            "FieldInfo" : [
-                {
-                    "FieldName" : "",
-                    "Villages" : [],
-                    "Dungeons" : [],
-                    "Environment" : []
-                },
-                {
-                    "FieldName" : "",
-                    "Villages" : [],
-                    "Dungeons" : [],
-                    "Environment" : []
+                    "FieldName": "시작의 평원",
+                    "FieldDescription": "모험의 시작점이 되는 넓은 평원. 여행자들이 자주 지나다닌다.",
+                    "Villages": ["시작 마을"],
+                    "Dungeons": ["초원 동굴"],
+                    "GatherableItems": [2]
                 }
             ]
         }
-
     ]
 }

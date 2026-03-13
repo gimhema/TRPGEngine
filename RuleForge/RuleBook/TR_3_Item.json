@@ -1,38 +1,43 @@
 {
-    "ItemInfo" : [
+    "Items": [
         {
-            "ItemA": {
-                "Id" : 0,
-                "Name":"",
-                "Type":"Equipment",
-                "Description" : "",
-                "Stat" : {
-                    "ATK" : 0,
-                    "DFN" : 0
-                }
-            }
+            "Id": 0,
+            "Name": "낡은 검",
+            "Type": "Equipment",
+            "Description": "오래되어 낡았지만 아직 쓸 만한 검.",
+            "Price": 100,
+            "Stat": { "ATK": 5, "DEF": 0 }
         },
         {
-            "ItemB": {
-                "Id" : 1,
-                "Name":"",
-                "Type":"Consumable",
-                "Description" : "",
-                "ItemEffect" : {
-
-                }
-            }
+            "Id": 1,
+            "Name": "가죽 갑옷",
+            "Type": "Equipment",
+            "Description": "얇은 가죽으로 만들어진 갑옷.",
+            "Price": 80,
+            "Stat": { "ATK": 0, "DEF": 4 }
         },
         {
-            "ItemC": {
-                "Id" : 2,
-                "Name":"",
-                "Type":"KeyItem",
-                "Description" : ""
-            }            
+            "Id": 2,
+            "Name": "포션",
+            "Type": "Consumable",
+            "Description": "HP를 30 회복하는 물약.",
+            "Price": 50,
+            "Effect": { "HP": 30, "MP": 0 }
+        },
+        {
+            "Id": 3,
+            "Name": "에테르",
+            "Type": "Consumable",
+            "Description": "MP를 20 회복하는 파란 물약.",
+            "Price": 60,
+            "Effect": { "HP": 0, "MP": 20 }
+        },
+        {
+            "Id": 4,
+            "Name": "마을 허가증",
+            "Type": "KeyItem",
+            "Description": "성문을 통과하기 위한 통행증.",
+            "Price": 0
         }
-
     ]
-
-
 }

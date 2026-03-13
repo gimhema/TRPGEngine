@@ -1,12 +1,18 @@
 {
-    "VillageInfo" : [
+    "Villages": [
         {
-            "VillageName" : "",
-            "NPCs" : []
-        },
-        {
-            "VillageName" : "",
-            "NPCs" : []
+            "VillageName": "시작 마을",
+            "VillageDescription": "여행자들이 출발하는 작은 마을. 기본적인 물자를 구할 수 있다.",
+            "Establishments": [
+                {
+                    "EstablishmentName": "무기 상회",
+                    "NPCNames": ["무기 상인"]
+                },
+                {
+                    "EstablishmentName": "마을 회관",
+                    "NPCNames": ["마을 장로", "퀘스트 수령인"]
+                }
+            ]
         }
     ]
 }

@@ -1,12 +1,9 @@
 {
-    "DungeonInfo" : [
+    "Dungeons": [
         {
-            "DungeonName" : "",
-            "EncounterEnemys" : []
-        },
-        {
-            "DungeonName" : "",
-            "EncounterEnemys" : []
+            "DungeonName": "초원 동굴",
+            "DungeonDescription": "슬라임과 고블린이 서식하는 어두운 동굴. 동굴 깊숙이에는 오크가 도사리고 있다.",
+            "EncounterEnemyIds": [0, 1, 2]
         }
     ]
 }

@@ -1,16 +1,16 @@
 {
-    "QuestInfo" : [
+    "QuestInfo": [
         {
-            "QuestId" : 0,
-            "QuestTitle" : "",
-            "QuestDescription" : "",
-            "QuestRewardItemIds" : [0]
+            "QuestId": 0,
+            "QuestTitle": "슬라임 퇴치",
+            "QuestDescription": "마을 근처에 출몰한 슬라임을 처치하라. 마을 주민들이 두려워하고 있다.",
+            "QuestRewardItemIds": [2, 2]
         },
         {
-            "QuestId" : 1,
-            "QuestTitle" : "",
-            "QuestDescription" : "",
-            "QuestRewardItemIds" : [0]
+            "QuestId": 1,
+            "QuestTitle": "고블린 소탕",
+            "QuestDescription": "초원 동굴에 자리 잡은 고블린들을 제거하라. 여행자들의 안전을 위협하고 있다.",
+            "QuestRewardItemIds": [0, 2]
         }
     ]
 }

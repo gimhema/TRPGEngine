@@ -1,26 +1,46 @@
 {
-    "SkillInfo" : [
+    "StarterSkills": [
         {
-            "SkillA":{
-                "SkillName":"",
-                "SkillTargetType":"",
-                "SkillEffectType":"",
-                "Stat": {
-                    "ATK":0,
-                    "DFN":0
-                }
-            }
+            "SkillName": "강타",
+            "Description": "힘을 모아 적을 강하게 내려친다.",
+            "MpCost": 5,
+            "TargetType": "Enemy",
+            "RequiredLevel": 0,
+            "Effects": [
+                { "EffectType": "Damage", "Value": 10, "TargetStat": "" }
+            ]
         },
         {
-                "SkillB":    {
-                "SkillName":"",
-                "SkillTargetType":"",
-                "SkillEffectType":"", 
-                "Stat": {
-                    "ATK":0,
-                    "DFN":0
-                }
-            }
+            "SkillName": "치유",
+            "Description": "자신의 HP를 회복한다.",
+            "MpCost": 8,
+            "TargetType": "Self",
+            "RequiredLevel": 0,
+            "Effects": [
+                { "EffectType": "Heal", "Value": 25, "TargetStat": "" }
+            ]
+        }
+    ],
+    "AdvancedSkills": [
+        {
+            "SkillName": "파멸의 검",
+            "Description": "막대한 물리 데미지를 입히는 강력한 기술.",
+            "MpCost": 15,
+            "TargetType": "Enemy",
+            "RequiredLevel": 5,
+            "Effects": [
+                { "EffectType": "Damage", "Value": 30, "TargetStat": "" }
+            ]
+        },
+        {
+            "SkillName": "MP 흡수",
+            "Description": "적의 에너지를 흡수하여 자신의 MP를 회복한다.",
+            "MpCost": 0,
+            "TargetType": "Self",
+            "RequiredLevel": 3,
+            "Effects": [
+                { "EffectType": "MpRestore", "Value": 20, "TargetStat": "" }
+            ]
         }
     ]
 }
