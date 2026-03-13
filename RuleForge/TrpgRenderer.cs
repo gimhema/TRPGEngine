@@ -314,6 +314,7 @@ namespace RuleForge
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.Write($"  Gold: {player.Gold}");
                 Console.ResetColor();
+                Console.Write($"  EXP: {player.Exp}/{player.ExpToNextLevel}");
                 Console.WriteLine();
 
                 // 스킬 보유 수 표시

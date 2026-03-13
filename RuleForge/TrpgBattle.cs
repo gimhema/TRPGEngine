@@ -225,8 +225,10 @@ namespace RuleForge
                 {
                     OnSelect = (s) =>
                     {
-                        Player.playerItemBag.UseConsumable(itemIndex);
                         AddLog($"{Player.Name}은(는) {item.ItemName}을(를) 사용했다!");
+                        var effectLogs = Player.playerItemBag.UseConsumable(itemIndex, Player);
+                        foreach (var log in effectLogs)
+                            AddLog(log);
                         EnemyTurn(s);
                     }
                 });
@@ -307,7 +309,12 @@ namespace RuleForge
             Phase = BattlePhase.Victory;
             AddLog($"\n{CurrentEnemy.Name}을(를) 처치했다!");
 
-            // 적 처치 보상 지급
+            // EXP 지급
+            var expLogs = Player.GainExp(CurrentEnemy.ExpReward);
+            foreach (var log in expLogs)
+                AddLog(log);
+
+            // 아이템 보상 지급
             GiveEnemyReward();
 
             state.NarrativeText = BuildBattleNarrative();

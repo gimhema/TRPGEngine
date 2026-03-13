@@ -94,6 +94,7 @@ namespace RuleForge
         public int ATK { get; set; }
         public int DEF { get; set; }
         public int SPD { get; set; }
+        public int ExpReward { get; set; } = 10;
         public List<int> RewardItemIds { get; set; } = new();
     }
 
@@ -260,6 +261,15 @@ namespace RuleForge
                     "KeyItem"    => new KeyItem(dto.Name, dto.Description, dto.Price),
                     _            => new TrpgItem(dto.Name, dto.Description, dto.Price)
                 };
+
+                // Consumable: HP/MP 효과 데이터 주입
+                if (item is Consumable consumable && dto.Effect != null)
+                {
+                    consumable.HealHP = dto.Effect.HP;
+                    consumable.RestoreMP = dto.Effect.MP;
+                    consumable.Quantity = 1;
+                }
+
                 TrpgItemRegistry.Register(dto.Id, item);
             }
 
@@ -279,6 +289,7 @@ namespace RuleForge
             {
                 var enemy = new TrpgEnemy(dto.EnemyName);
                 enemy.InitCombatStats(dto.HP, dto.ATK, dto.DEF, dto.SPD);
+                enemy.ExpReward = dto.ExpReward;
 
                 foreach (var itemId in dto.RewardItemIds)
                 {

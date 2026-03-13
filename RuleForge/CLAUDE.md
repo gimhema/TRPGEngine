@@ -493,15 +493,19 @@ NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
 ## 다음 할일 (우선순위)
 
 ### 🔴 높음
-1. **TR_0_Overview.md 챕터/스토리 파싱** - Markdown 챕터 목표 파싱 및 LLM 입력용 스토리 연동
-2. **NPC 대화 시스템** - `Establishment.Action()`에서 NPC 선택 시 실제 대화 출력 구현
+1. **소비 아이템 실제 효과** - `Consumable`의 `Effect(HP/MP)` 데이터를 `UseItem` 시 실제 적용
+2. **경험치/레벨업 시스템** - 전투 승리 시 EXP 획득 및 레벨업
 
 ### 🟡 중간
-3. **경험치/레벨업 시스템** - 전투 승리 시 EXP 획득 및 레벨업
-4. **소비 아이템 실제 효과** - `Consumable`의 `Effect(HP/MP)` 데이터를 `UseItem` 시 실제 적용
-5. **필드 채집(Gathering)** - `Field.Gathering()`에서 `GatherableItems`를 실제로 지급
+3. **필드 채집(Gathering)** - `Field.Gathering()`에서 `GatherableItems`를 실제로 지급
+4. **상점 NPC 연동** - Trader 타입 NPC가 `TrpgShop`을 통해 상점 진입
+5. **휴식 시스템** - HP/MP 회복 (안전 지역에서만)
 
 ### 🟢 낮음
 6. **저장/로드 시스템** - 게임 상태 JSON 직렬화
-7. **휴식 시스템** - HP/MP 회복
-8. **상점 NPC 연동** - Trader 타입 NPC가 `TrpgShop`을 통해 상점 진입
+7. **TR_0_Overview.md 챕터/스토리 파싱** - LLM 연동 준비용 Markdown 파싱
+
+### 🔵 LLM 로컬모델 연동 시 구현
+- **NPC 대화 시스템** - LLM 기반 동적 대화 생성, NPC 성격/태도 반영
+- **퀘스트 수락/관리 UI** - NPC 대화 연동
+- **TR_0_Overview.md 스토리 → LLM 프롬프트 주입**

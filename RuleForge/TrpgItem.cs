@@ -60,25 +60,45 @@ namespace RuleForge
     {
         public int Quantity { get; set; }
 
+        /// <summary>사용 시 HP 회복량 (0이면 효과 없음)</summary>
+        public int HealHP { get; set; }
+
+        /// <summary>사용 시 MP 회복량 (0이면 효과 없음)</summary>
+        public int RestoreMP { get; set; }
+
         public Consumable(string name, string description = "", int price = 0) : base(name, description, price)
         {
-
         }
 
-        // 부모 클래스의  Use 메서드를 오버라이드
+        // Quantity만 감소
         public new void Use()
         {
             if (Quantity > 0)
-            {
                 Quantity--;
-                Console.WriteLine($"Consumable used: {ItemName}, Remaining quantity: {Quantity}");
-            }
-            else
-            {
-                Console.WriteLine($"No more {ItemName} left to use.");
-            }
         }
 
+        /// <summary>
+        /// 아이템 효과를 target에 적용하고 결과 로그 목록을 반환한다.
+        /// </summary>
+        public List<string> ApplyEffect(TrpgActor target)
+        {
+            var logs = new List<string>();
+
+            if (HealHP > 0)
+            {
+                int current = target.CommonAttributes.GetStatus("HP")?.StatusValue ?? 0;
+                target.CommonAttributes.UpdateStatus("HP", current + HealHP);
+                logs.Add($"{target.Name}의 HP가 {HealHP} 회복됐다!");
+            }
+            if (RestoreMP > 0)
+            {
+                int current = target.CommonAttributes.GetStatus("MP")?.StatusValue ?? 0;
+                target.CommonAttributes.UpdateStatus("MP", current + RestoreMP);
+                logs.Add($"{target.Name}의 MP가 {RestoreMP} 회복됐다!");
+            }
+
+            return logs;
+        }
     }
 
     public class KeyItem : TrpgItem

@@ -9,8 +9,10 @@ namespace RuleForge
 
     public class TrpgEnemy : TrpgActor
     {
-        
         public List<TrpgItem> BattleReward;
+
+        /// <summary>처치 시 지급하는 경험치</summary>
+        public int ExpReward { get; set; } = 10;
 
         public TrpgEnemy(string name, string description = "", string className = "") : base(name, description)
         {

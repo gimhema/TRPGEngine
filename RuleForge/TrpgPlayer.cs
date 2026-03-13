@@ -95,11 +95,26 @@ namespace RuleForge
             {
                 ConsumableItems[selectedIndex].Use();
                 if (ConsumableItems[selectedIndex].Quantity <= 0)
-                {
                     ConsumableItems.RemoveAt(selectedIndex);
-                }
             }
         }
+
+        /// <summary>
+        /// 소비 아이템을 사용하고 target에 효과를 적용한다. 효과 로그 목록을 반환한다.
+        /// </summary>
+        public List<string> UseConsumable(int selectedIndex, TrpgActor target)
+        {
+            if (selectedIndex < 0 || selectedIndex >= ConsumableItems.Count)
+                return new List<string>();
+
+            var item = ConsumableItems[selectedIndex];
+            var logs = item.ApplyEffect(target);
+            item.Use();
+            if (item.Quantity <= 0)
+                ConsumableItems.RemoveAt(selectedIndex);
+            return logs;
+        }
+
         public void DropConsumable(int selectedIndex)
         {
             if (selectedIndex >= 0 && selectedIndex < ConsumableItems.Count)
@@ -141,15 +156,21 @@ namespace RuleForge
         public PlayerEquipments playerEquipments { get; set; } = new PlayerEquipments();
         public List<TrpgSkill> PlayerSkills { get; set; } = new List<TrpgSkill>();
 
-        /// <summary>
-        /// 플레이어 소지금
-        /// </summary>
+        /// <summary>플레이어 소지금</summary>
         public int Gold { get; set; }
+
+        /// <summary>현재 경험치</summary>
+        public int Exp { get; set; }
+
+        /// <summary>다음 레벨까지 필요한 경험치 (레벨 × 100)</summary>
+        public int ExpToNextLevel { get; set; }
 
         public TrpgPlayer(string name, string description = "", string className = "") : base(name, description)
         {
             playerClass = new PlayerClass(className);
             Gold = 0;
+            Exp = 0;
+            ExpToNextLevel = 100;
         }
 
         /// <summary>
@@ -181,6 +202,52 @@ namespace RuleForge
         public List<TrpgSkill> GetUsableSkills()
         {
             return PlayerSkills.FindAll(s => s.CanUse(this));
+        }
+
+        /// <summary>
+        /// 경험치를 획득하고 레벨업 조건을 확인한다. 결과 로그 목록을 반환한다.
+        /// </summary>
+        public List<string> GainExp(int exp)
+        {
+            var logs = new List<string>();
+            if (exp <= 0) return logs;
+
+            Exp += exp;
+            logs.Add($"EXP +{exp} ({Exp}/{ExpToNextLevel})");
+
+            while (Exp >= ExpToNextLevel)
+            {
+                Exp -= ExpToNextLevel;
+                LevelUp(logs);
+            }
+            return logs;
+        }
+
+        private void LevelUp(List<string> logs)
+        {
+            playerProfile.PlayerLevel++;
+            ExpToNextLevel = playerProfile.PlayerLevel * 100;
+
+            // 기본 스탯 증가
+            var increases = new Dictionary<string, int>
+            {
+                { "HP", 10 }, { "MP", 5 }, { "ATK", 2 }, { "DEF", 1 }, { "SPD", 1 }
+            };
+            foreach (var kv in increases)
+            {
+                var stat = CommonAttributes.GetStatus(kv.Key);
+                if (stat != null)
+                    CommonAttributes.UpdateStatus(kv.Key, stat.StatusValue + kv.Value);
+            }
+
+            logs.Add($"레벨업! Lv.{playerProfile.PlayerLevel}");
+
+            // 새로 습득 가능한 상급 스킬 확인
+            foreach (var skill in TrpgSkillData.GetAdvancedSkills())
+            {
+                if (LearnSkill(skill))
+                    logs.Add($"새 스킬 습득: [{skill.SkillName}]!");
+            }
         }
     }
 
