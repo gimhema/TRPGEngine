@@ -317,6 +317,14 @@ namespace RuleForge
                 var npc = new TrpgNPC();
                 npc.Name = dto.Name;
                 npc.Description = dto.Personality;
+                npc.NpcType = dto.Type;
+
+                foreach (var itemId in dto.TradeItems)
+                {
+                    var item = TrpgItemRegistry.Get(itemId);
+                    if (item != null) npc.TradeItems.Add(item);
+                }
+
                 result[dto.Name] = npc;
             }
 

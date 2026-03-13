@@ -163,9 +163,11 @@ namespace RuleForge
             // 아이템 타입에 따라 인벤토리에 추가
             if (item is Consumable consumable)
             {
-                // 소비 아이템은 새 인스턴스로 복제하여 지급
+                // 소비 아이템은 새 인스턴스로 복제하여 지급 (효과 포함)
                 var newItem = new Consumable(consumable.ItemName, consumable.ItemDescription, consumable.Price)
                 {
+                    HealHP = consumable.HealHP,
+                    RestoreMP = consumable.RestoreMP,
                     Quantity = consumable.Quantity > 0 ? consumable.Quantity : 1
                 };
                 player.playerItemBag.AcquireConsumable(newItem);

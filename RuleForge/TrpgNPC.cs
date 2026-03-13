@@ -9,20 +9,25 @@ namespace RuleForge
 
     public class TrpgNPC : TrpgActor
     {
+        /// <summary>NPC 타입: Normal, Trader, Quest 등</summary>
+        public string NpcType { get; set; } = "Normal";
+
+        /// <summary>상인 NPC의 판매 아이템 목록 (룰북에서 주입)</summary>
+        public List<TrpgItem> TradeItems { get; set; } = new List<TrpgItem>();
 
         public void InterAction()
         {
-            
+
         }
 
         public void Trade()
         {
-            
+
         }
 
         public void Communicate()
         {
-            
+
         }
     }
 

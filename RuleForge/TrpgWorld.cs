@@ -174,8 +174,17 @@ namespace RuleForge
                     {
                         OnSelect = (s) =>
                         {
-                            // TODO: NPC 대화 시스템 구현 후 연결
-                            s.NarrativeText = $"{npc.Name}과(와) 대화를 시작합니다.";
+                            if (npc.NpcType == "Trader" && npc.TradeItems.Count > 0)
+                            {
+                                var shop = new TrpgShop(npc.Name);
+                                shop.Merchandise.AddRange(npc.TradeItems);
+                                shop.Enter(s);
+                            }
+                            else
+                            {
+                                // TODO: NPC 대화 시스템 구현 후 연결
+                                s.NarrativeText = $"{npc.Name}과(와) 대화를 시작합니다.";
+                            }
                         }
                     });
                     index++;
@@ -239,6 +248,36 @@ namespace RuleForge
                 index++;
             }
 
+            // 휴식하기
+            state.AddChoice(new TrpgChoice(index.ToString(), $"{index}. 휴식하기")
+            {
+                OnSelect = (s) =>
+                {
+                    if (s.CurrentPlayer != null)
+                    {
+                        var player = s.CurrentPlayer;
+                        var initStats = TrpgGameConfig.PlayerDefault.InitialStats;
+
+                        int restoreHp = initStats.TryGetValue("HP", out int maxHp) ? maxHp : 100;
+                        int restoreMp = initStats.TryGetValue("MP", out int maxMp) ? maxMp : 50;
+
+                        player.CommonAttributes.UpdateStatus("HP", restoreHp);
+                        player.CommonAttributes.UpdateStatus("MP", restoreMp);
+                        s.NarrativeText = $"===== {GetName()} =====\n{GetName()}에서 편히 쉬었습니다.\nHP와 MP가 완전히 회복되었습니다.";
+                    }
+                    else
+                    {
+                        s.NarrativeText = "휴식을 취합니다...";
+                    }
+                    s.ClearChoices();
+                    s.AddChoice(new TrpgChoice("1", "1. 계속")
+                    {
+                        OnSelect = (ns) => Action(ns)
+                    });
+                }
+            });
+            index++;
+
             // 돌아가기 - 이전 씬으로 복귀
             string backId = index.ToString();
             state.AddChoice(new TrpgChoice(backId, $"{index}. 마을을 떠나기")
@@ -288,9 +327,46 @@ namespace RuleForge
 
         public void Gathering(TrpgGameState state)
         {
-            // TODO: GatherableItems에서 랜덤 아이템 획득 후 플레이어 인벤토리에 추가
-            // TODO: 플레이어 액션 시스템 구현 후 연결
-            state.NarrativeText = "주변을 살펴보며 유용한 것들을 찾습니다...";
+            if (state.CurrentPlayer == null || GatherableItems.Count == 0)
+            {
+                state.NarrativeText = "이 지역에서 채집할 수 있는 것이 없습니다.";
+                Action(state);
+                return;
+            }
+
+            var random = new Random();
+            string itemIdStr = GatherableItems[random.Next(GatherableItems.Count)];
+
+            if (int.TryParse(itemIdStr, out int itemId))
+            {
+                var templateItem = TrpgItemRegistry.Get(itemId);
+                if (templateItem is Consumable consumable)
+                {
+                    var newItem = new Consumable(consumable.ItemName, consumable.ItemDescription, consumable.Price)
+                    {
+                        HealHP = consumable.HealHP,
+                        RestoreMP = consumable.RestoreMP,
+                        Quantity = 1
+                    };
+                    state.CurrentPlayer.playerItemBag.AcquireConsumable(newItem);
+                    state.NarrativeText = $"채집: {newItem.ItemName}을(를) 발견했습니다!";
+                }
+                else if (templateItem is Equipment equipment)
+                {
+                    var newItem = new Equipment(equipment.ItemName, equipment.ItemDescription, equipment.Price);
+                    state.CurrentPlayer.playerItemBag.AcquireEquipment(newItem);
+                    state.NarrativeText = $"채집: {newItem.ItemName}을(를) 발견했습니다!";
+                }
+                else
+                {
+                    state.NarrativeText = "주변을 살펴봤지만 아무것도 찾지 못했습니다.";
+                }
+            }
+            else
+            {
+                state.NarrativeText = "주변을 살펴봤지만 아무것도 찾지 못했습니다.";
+            }
+
             Action(state);
         }
 
