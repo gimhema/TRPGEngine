@@ -391,27 +391,25 @@ TrpgGameState/TrpgChoice 기반 상점 시스템이 구현되었습니다:
 
 ### 게임 시스템
 
-#### 5. 저장/로드 시스템 🟢
-**필요 작업**:
-- 게임 상태 직렬화 (JSON/Binary)
-- 파일 I/O (세이브 파일 읽기/쓰기)
-- 세이브 슬롯 관리 (여러 세이브 파일 지원)
-- 게임 상태 역직렬화
-- 세이브 파일 검증 및 버전 호환성 처리
-- 자동 저장 기능
+#### 5. 저장/로드 시스템 ✅
+**위치**: [TrpgGameData.cs](TrpgGameData.cs)
 
-**참고**:
-- [TrpgInterface.cs:100-102](TrpgInterface.cs#L100-L102) Load Game
-- [TrpgInterface.cs:189-192](TrpgInterface.cs#L189-L192) Save Game
+`GameSaveManager` 정적 클래스로 구현 완료:
+- `HasSaveData()`: `save.json` 존재 여부 확인
+- `Save(state, worldMgr)`: 플레이어 스탯/아이템/스킬, 던전 클리어 상태, 수락/완료 퀘스트 ID → JSON 직렬화
+- `Load(state, worldMgr)`: 역직렬화 후 게임 상태 복원 (위치는 WorldUnit ID로 조회)
+- 필드/마을에서 "저장하기" 선택지, `InitializeGame()`에 "이어하기" 선택지 (세이브 파일 존재 시)
 
-#### 6. 휴식 시스템 🟢
-**필요 작업**:
-- HP/MP 회복 로직
-- 시간 경과 시스템 (선택적)
-- 안전 지역 확인
-- 휴식 중 이벤트 (랜덤 인카운터 등)
+**미구현 (향후)**:
+- 세이브 슬롯 관리 (다중 세이브)
+- 자동 저장
 
-**참고**: [TrpgInterface.cs:185-187](TrpgInterface.cs#L185-L187) Rest 케이스
+#### 6. 휴식 시스템 ✅
+**위치**: [TrpgWorld.cs](TrpgWorld.cs) `Field.Rest()`
+
+필드에서 "야영하기" 선택지로 구현 완료:
+- HP/MP 최대치의 50% 회복
+- `Math.Min(maxHp / 2, maxHp - currentHp)` 방식으로 과회복 방지
 
 #### 7. 설정 시스템 🟢
 **필요 작업**:
@@ -462,50 +460,46 @@ NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
 - `WorldManager.LoadWorldInfoByRuleBook()` - 빈 메서드, 구현 필요
 - `GameStartPreprocess()` - LLM 로딩 및 룰북 파싱 모두 미구현
 
-## 오늘의 할일 (2026-03-13) - 완료된 항목
+## 완료된 작업 이력
 
-### ✅ 1. RuleForge.csproj 리소스 설정
-- `RuleBook/**/*` 파일을 `Content/CopyToOutputDirectory: Always`로 설정 완료
-- 빌드 시 출력 디렉토리에 RuleBook 폴더 복사 확인
+### ✅ 2026-03-13: 룰북 파서 및 게임 시작 연결
+1. `RuleForge.csproj` RuleBook 리소스 설정
+2. 룰북 JSON 스키마 재설계 및 데이터 입력 (아이템 5, 적 3, 스킬 4, NPC 3, 퀘스트 2)
+3. `RulebookParser` JSON 파서 구현 (`TrpgRule.cs`, `System.Text.Json`)
+4. `GameStartPreprocess` 연결 및 PlayerSetup 씬 완성
 
-### ✅ 2. 룰북 JSON 스키마 재설계 및 데이터 입력
-- 모든 JSON 파일을 배열 기반 구조로 재설계 (기존 SkillA/SkillB 방식 제거)
-- 아이템 5개, 적 3종, 스킬 4개(기본2/상급2), NPC 3명, 월드/마을/던전 각 1개, 퀘스트 2개 정의
-
-### ✅ 3. RulebookParser JSON 파서 구현
-- [TrpgRule.cs](TrpgRule.cs) 완전 재작성 (`System.Text.Json` 활용)
-- `TrpgItemRegistry` / `TrpgEnemyRegistry` 정적 레지스트리 추가
-- `ParseAll(worldMgr)` 단일 진입점, 순서 보장 (Items→Enemies→Skills→World→Quests)
-
-### ✅ 4. GameStartPreprocess 연결 및 PlayerSetup 씬 완성
-- [Program.cs](Program.cs) `GameStartPreprocess()`에서 `TrpgGameLogic.Instance.LoadRulebook()` 호출
-- `TrpgGameLogic.LoadRulebook()` - 파서 호출 후 퀘스트를 챕터로 묶어 등록
-- `TrpgGameLogic.InitializeGame()` - PlayerSetup 선택지 구성 (이름 입력 / 기본 이름)
-- `TrpgGameLogic.ProcessInput()` - PlayerSetup에서 자유 이름 입력 처리
-- `TrpgGameLogic.GetStartingLocation()` - 첫 번째 Field 반환
-- `TrpgGameLogic.StartGame()` - 플레이어 생성 후 시작 필드로 자동 진입
-
-**실행 흐름 (검증 완료)**:
+**실행 흐름**:
 ```
 룰북 파싱 → PlayerSetup (이름 입력) → 시작의 평원(Field) → 주변 탐색 → [시작 마을 / 초원 동굴]
 ```
 
+### ✅ 2026-03-14: 게임플레이 시스템 확장
+1. **소비 아이템 실제 효과** - `UseConsumable(index, player)`: HP/MP 실제 회복, 로그 반환
+2. **전투 골드 보상** - `TrpgEnemy.GoldReward`, `TrpgBattle.GiveEnemyReward()`에서 골드 지급
+3. **퀘스트 수락/관리 UI**
+   - `Establishment.ShowQuestMenu()`: Quest NPC에서 퀘스트 수락/완료보고/보상 수령
+   - `TrpgPlayer.AcceptedQuests`: 수락한 퀘스트 목록
+   - `TrpgQuestRegistry`: 파서 단계에서 퀘스트 ID → 인스턴스 등록
+4. **필드 야영(휴식) 시스템** - `Field.Rest()`: HP/MP 최대치의 50% 회복
+5. **인벤토리 UI** - `TrpgGameLogic.OpenInventory()`: 필드/마을에서 소비 아이템 사용 가능
+6. **저장/로드 시스템** (`TrpgGameData.cs`)
+   - `GameSaveManager.Save()`: 플레이어/던전/퀘스트 상태 JSON 직렬화 (`save.json`)
+   - `GameSaveManager.Load()`: 역직렬화 후 게임 상태 복원
+   - 필드/마을에서 "저장하기" 선택지 추가
+   - `InitializeGame()`에 "이어하기" 선택지 추가 (세이브 파일 존재 시)
+
 ## 다음 할일 (우선순위)
 
 ### 🔴 높음
-1. **소비 아이템 실제 효과** - `Consumable`의 `Effect(HP/MP)` 데이터를 `UseItem` 시 실제 적용
-2. **경험치/레벨업 시스템** - 전투 승리 시 EXP 획득 및 레벨업
+1. **경험치/레벨업 시스템** - 전투 승리 시 EXP 획득 및 레벨업
+2. **장비 스탯 반영** - Equipment의 EquipmentStatuses를 전투 데미지 계산에 반영
 
 ### 🟡 중간
-3. **필드 채집(Gathering)** - `Field.Gathering()`에서 `GatherableItems`를 실제로 지급
-4. **상점 NPC 연동** - Trader 타입 NPC가 `TrpgShop`을 통해 상점 진입
-5. **휴식 시스템** - HP/MP 회복 (안전 지역에서만)
-
-### 🟢 낮음
-6. **저장/로드 시스템** - 게임 상태 JSON 직렬화
-7. **TR_0_Overview.md 챕터/스토리 파싱** - LLM 연동 준비용 Markdown 파싱
+3. **상점 NPC 연동** - Trader 타입 NPC가 `TrpgShop`을 통해 상점 진입 (현재 NPC 진입까지만)
+4. **필드 채집(Gathering)** - `Field.Gathering()`에서 `GatherableItems`를 실제로 지급
+5. **TR_0_Overview.md 챕터/스토리 파싱** - LLM 연동 준비용 Markdown 파싱
 
 ### 🔵 LLM 로컬모델 연동 시 구현
 - **NPC 대화 시스템** - LLM 기반 동적 대화 생성, NPC 성격/태도 반영
-- **퀘스트 수락/관리 UI** - NPC 대화 연동
+- **퀘스트 수락/관리 UI 고도화** - NPC 대화 연동
 - **TR_0_Overview.md 스토리 → LLM 프롬프트 주입**

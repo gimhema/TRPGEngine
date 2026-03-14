@@ -17,6 +17,14 @@ namespace RuleForge
         public static void Register(int id, TrpgItem item) => Items[id] = item;
         public static TrpgItem? Get(int id) => Items.TryGetValue(id, out var item) ? item : null;
         public static void Clear() => Items.Clear();
+
+        /// <summary>이름으로 아이템 ID를 역조회한다. 없으면 -1 반환.</summary>
+        public static int FindId(string itemName)
+        {
+            foreach (var kv in Items)
+                if (kv.Value.ItemName == itemName) return kv.Key;
+            return -1;
+        }
     }
 
     // ============================================================
@@ -41,6 +49,7 @@ namespace RuleForge
         public static void Register(int id, Quest quest) => Quests[id] = quest;
         public static Quest? Get(int id) => Quests.TryGetValue(id, out var q) ? q : null;
         public static void Clear() => Quests.Clear();
+        public static IEnumerable<Quest> All() => Quests.Values;
     }
 
     // ============================================================

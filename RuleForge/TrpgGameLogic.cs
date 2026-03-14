@@ -152,6 +152,9 @@ namespace RuleForge
             Chapters = chapters;
         }
 
+        /// <summary>저장/로드 시스템에서 WorldManager에 접근하기 위한 프로퍼티</summary>
+        public WorldManager WorldManager => WorldMgr;
+
         public static TrpgGameLogic Instance
         {
             get
@@ -252,6 +255,27 @@ namespace RuleForge
             {
                 OnSelect = (s) => StartGame("모험가", s)
             });
+
+            // 세이브 파일이 있을 때만 불러오기 표시
+            if (GameSaveManager.HasSaveData())
+            {
+                state.AddChoice(new TrpgChoice("3", "3. 이어하기")
+                {
+                    OnSelect = (s) =>
+                    {
+                        bool ok = GameSaveManager.Load(s, WorldMgr);
+                        if (!ok)
+                        {
+                            s.NarrativeText = "세이브 파일을 불러오지 못했습니다.";
+                            s.ClearChoices();
+                            s.AddChoice(new TrpgChoice("1", "1. 처음으로")
+                            {
+                                OnSelect = (ns) => InitializeGame(ns)
+                            });
+                        }
+                    }
+                });
+            }
         }
 
         public void DoAction(string actionName)
