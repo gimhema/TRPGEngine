@@ -380,13 +380,20 @@ namespace RuleForge
         /// </summary>
         private void GiveEnemyReward()
         {
+            // 골드 보상
+            if (CurrentEnemy.GoldReward > 0)
+            {
+                Player.Gold += CurrentEnemy.GoldReward;
+                AddLog($"\n골드 {CurrentEnemy.GoldReward} G 획득! (소지금: {Player.Gold} G)");
+            }
+
             if (CurrentEnemy.BattleReward == null || CurrentEnemy.BattleReward.Count == 0)
             {
                 return;
             }
 
             int rewardCount = _random.Next(1, CurrentEnemy.BattleReward.Count + 1);
-            AddLog($"\n보상 {rewardCount}개를 획득!");
+            AddLog($"보상 아이템 {rewardCount}개를 획득!");
 
             HashSet<int> selectedIndices = new HashSet<int>();
             for (int i = 0; i < rewardCount; i++)

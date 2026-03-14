@@ -63,12 +63,17 @@ namespace RuleForge
             Main,
             Sub
         }
-        
+
+        public int QuestId { get; set; } = -1;
         public string Title { get; set; }
         public string Description { get; set; }
         public QuestType Type { get; set; }
 
+        public bool IsAccepted { get; set; } = false;
         public bool IsCompleted { get; set; } = false;
+
+        /// <summary>퀘스트 완료 보상 아이템 목록 (룰북에서 주입)</summary>
+        public List<TrpgItem> RewardItems { get; set; } = new();
 
         public Quest(string title, QuestType type)
         {
@@ -79,7 +84,7 @@ namespace RuleForge
 
         public string GetNarrative()
         {
-            return $"Title : {Title}\n{Description}";
+            return $"[{Title}]\n{Description}";
         }
 
     }

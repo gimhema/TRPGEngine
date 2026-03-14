@@ -32,6 +32,18 @@ namespace RuleForge
     }
 
     // ============================================================
+    // 퀘스트 레지스트리 - ID 기반 퀘스트 인스턴스 조회
+    // ============================================================
+    public static class TrpgQuestRegistry
+    {
+        private static readonly Dictionary<int, Quest> Quests = new();
+
+        public static void Register(int id, Quest quest) => Quests[id] = quest;
+        public static Quest? Get(int id) => Quests.TryGetValue(id, out var q) ? q : null;
+        public static void Clear() => Quests.Clear();
+    }
+
+    // ============================================================
     // JSON DTO (파싱 전용 내부 클래스)
     // ============================================================
 
@@ -95,6 +107,7 @@ namespace RuleForge
         public int DEF { get; set; }
         public int SPD { get; set; }
         public int ExpReward { get; set; } = 10;
+        public int GoldReward { get; set; } = 0;
         public List<int> RewardItemIds { get; set; } = new();
     }
 
@@ -290,6 +303,7 @@ namespace RuleForge
                 var enemy = new TrpgEnemy(dto.EnemyName);
                 enemy.InitCombatStats(dto.HP, dto.ATK, dto.DEF, dto.SPD);
                 enemy.ExpReward = dto.ExpReward;
+                enemy.GoldReward = dto.GoldReward;
 
                 foreach (var itemId in dto.RewardItemIds)
                 {
@@ -306,7 +320,8 @@ namespace RuleForge
         // --------------------------------------------------------
         // NPC 파싱
         // --------------------------------------------------------
-        /// <summary>TR_4_NPC.json 파싱 후 이름 기반 딕셔너리 반환</summary>
+        /// <summary>TR_4_NPC.json 파싱 후 이름 기반 딕셔너리 반환.
+        /// ParseQuests() 호출 후 실행해야 TrpgQuestRegistry 참조 가능.</summary>
         public Dictionary<string, TrpgNPC> ParseNPCs()
         {
             var data = LoadJson<NpcFileDto>("TR_4_NPC.json");
@@ -325,6 +340,12 @@ namespace RuleForge
                     if (item != null) npc.TradeItems.Add(item);
                 }
 
+                foreach (var questId in dto.QuestIds)
+                {
+                    var quest = TrpgQuestRegistry.Get(questId);
+                    if (quest != null) npc.Quests.Add(quest);
+                }
+
                 result[dto.Name] = npc;
             }
 
@@ -335,7 +356,8 @@ namespace RuleForge
         // --------------------------------------------------------
         // 퀘스트 파싱
         // --------------------------------------------------------
-        /// <summary>TR_6_Quest.json 파싱 후 Quest 목록 반환</summary>
+        /// <summary>TR_6_Quest.json 파싱 후 Quest 목록 반환 및 TrpgQuestRegistry 등록.
+        /// ParseItems() 이후, ParseNPCs() 이전에 호출해야 한다.</summary>
         public List<Quest> ParseQuests()
         {
             var data = LoadJson<QuestFileDto>("TR_6_Quest.json");
@@ -345,8 +367,17 @@ namespace RuleForge
             {
                 var quest = new Quest(dto.QuestTitle, Quest.QuestType.Sub)
                 {
+                    QuestId = dto.QuestId,
                     Description = dto.QuestDescription
                 };
+
+                foreach (var itemId in dto.QuestRewardItemIds)
+                {
+                    var item = TrpgItemRegistry.Get(itemId);
+                    if (item != null) quest.RewardItems.Add(item);
+                }
+
+                TrpgQuestRegistry.Register(dto.QuestId, quest);
                 result.Add(quest);
             }
 
@@ -440,15 +471,15 @@ namespace RuleForge
         // --------------------------------------------------------
         // 전체 파싱 진입점
         // --------------------------------------------------------
-        /// <summary>모든 룰북 파일 파싱. 순서: Items → Enemies → Skills → World(+NPCs) → Quests</summary>
+        /// <summary>모든 룰북 파일 파싱. 순서: Items → Enemies → Skills → Quests → World(+NPCs)</summary>
         public List<Quest> ParseAll(WorldManager worldMgr)
         {
             Console.WriteLine("[RulebookParser] 룰북 파싱 시작...");
-            ParseItems();    // 보상 참조를 위해 가장 먼저
-            ParseEnemies();  // 던전 조립 전에
+            ParseItems();          // 아이템 먼저 (적/퀘스트 보상 참조)
+            ParseEnemies();        // 던전 조립 전에
             ParseSkills();
-            ParseWorld(worldMgr);  // 내부에서 ParseNPCs() 호출
-            var quests = ParseQuests();
+            var quests = ParseQuests();  // NPC 퀘스트 링크 전에 레지스트리 등록
+            ParseWorld(worldMgr);        // 내부에서 ParseNPCs() 호출 (퀘스트 레지스트리 참조)
             Console.WriteLine("[RulebookParser] 룰북 파싱 완료.");
             return quests;
         }

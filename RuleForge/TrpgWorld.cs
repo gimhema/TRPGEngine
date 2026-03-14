@@ -180,10 +180,19 @@ namespace RuleForge
                                 shop.Merchandise.AddRange(npc.TradeItems);
                                 shop.Enter(s);
                             }
+                            else if (npc.NpcType == "Quest" && npc.Quests.Count > 0)
+                            {
+                                ShowQuestMenu(s, npc, this, parentVillage);
+                            }
                             else
                             {
                                 // TODO: NPC 대화 시스템 구현 후 연결
-                                s.NarrativeText = $"{npc.Name}과(와) 대화를 시작합니다.";
+                                s.NarrativeText = $"{npc.Name}: \"안녕하세요, 여행자여.\"";
+                                s.ClearChoices();
+                                s.AddChoice(new TrpgChoice("1", "1. 돌아가기")
+                                {
+                                    OnSelect = (ns) => Action(ns, parentVillage)
+                                });
                             }
                         }
                     });
@@ -199,6 +208,111 @@ namespace RuleForge
                         parentVillage.Action(s);
                     }
                 });
+            }
+
+            /// <summary>
+            /// Quest 타입 NPC의 퀘스트 메뉴를 표시한다.
+            /// 수락 가능한 퀘스트, 완료 보고 가능한 퀘스트를 구분해서 보여준다.
+            /// </summary>
+            private static void ShowQuestMenu(TrpgGameState state, TrpgNPC npc,
+                Establishment est, Village parentVillage)
+            {
+                var player = state.CurrentPlayer;
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"[{npc.Name}]");
+                sb.AppendLine("어떤 의뢰를 원하시나요?");
+
+                state.ClearChoices();
+                int index = 1;
+
+                foreach (var quest in npc.Quests)
+                {
+                    var q = quest;
+                    if (!q.IsAccepted)
+                    {
+                        // 수락 가능한 퀘스트
+                        state.AddChoice(new TrpgChoice(index.ToString(),
+                            $"{index}. [수락] {q.Title}")
+                        {
+                            OnSelect = (s) =>
+                            {
+                                if (s.CurrentPlayer != null)
+                                {
+                                    q.IsAccepted = true;
+                                    s.CurrentPlayer.AcceptedQuests.Add(q);
+                                    s.NarrativeText = $"퀘스트 수락!\n\n{q.GetNarrative()}";
+                                    s.ClearChoices();
+                                    s.AddChoice(new TrpgChoice("1", "1. 돌아가기")
+                                    {
+                                        OnSelect = (ns) => ShowQuestMenu(ns, npc, est, parentVillage)
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    else if (!q.IsCompleted)
+                    {
+                        // 수락했지만 미완료 퀘스트 → 완료 보고
+                        state.AddChoice(new TrpgChoice(index.ToString(),
+                            $"{index}. [완료 보고] {q.Title}")
+                        {
+                            OnSelect = (s) =>
+                            {
+                                if (s.CurrentPlayer != null)
+                                {
+                                    q.IsCompleted = true;
+                                    var logSb = new System.Text.StringBuilder();
+                                    logSb.AppendLine($"퀘스트 완료! [{q.Title}]");
+
+                                    if (q.RewardItems.Count > 0)
+                                    {
+                                        logSb.AppendLine("\n보상 획득:");
+                                        foreach (var item in q.RewardItems)
+                                        {
+                                            if (item is Consumable c)
+                                            {
+                                                var newC = new Consumable(c.ItemName, c.ItemDescription, c.Price)
+                                                    { HealHP = c.HealHP, RestoreMP = c.RestoreMP, Quantity = 1 };
+                                                s.CurrentPlayer.playerItemBag.AcquireConsumable(newC);
+                                                logSb.AppendLine($"  - {c.ItemName}");
+                                            }
+                                            else if (item is Equipment eq)
+                                            {
+                                                var newEq = new Equipment(eq.ItemName, eq.ItemDescription, eq.Price);
+                                                s.CurrentPlayer.playerItemBag.AcquireEquipment(newEq);
+                                                logSb.AppendLine($"  - {eq.ItemName}");
+                                            }
+                                        }
+                                    }
+
+                                    s.NarrativeText = logSb.ToString();
+                                    s.ClearChoices();
+                                    s.AddChoice(new TrpgChoice("1", "1. 돌아가기")
+                                    {
+                                        OnSelect = (ns) => ShowQuestMenu(ns, npc, est, parentVillage)
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    else
+                    {
+                        // 완료된 퀘스트는 표시만 함
+                        state.AddChoice(new TrpgChoice(index.ToString(),
+                            $"{index}. [완료] {q.Title}")
+                        {
+                            OnSelect = (s) => ShowQuestMenu(s, npc, est, parentVillage)
+                        });
+                    }
+                    index++;
+                }
+
+                state.AddChoice(new TrpgChoice(index.ToString(), $"{index}. 돌아가기")
+                {
+                    OnSelect = (s) => est.Action(s, parentVillage)
+                });
+
+                state.NarrativeText = sb.ToString();
             }
 
             public TrpgNPC? SelectNPC(string npcName)
@@ -326,11 +440,15 @@ namespace RuleForge
                     Explore(s);
                 }
             });
-            state.AddChoice(new TrpgChoice("3", "3. 인벤토리")
+            state.AddChoice(new TrpgChoice("3", "3. 야영하기")
+            {
+                OnSelect = (s) => Rest(s)
+            });
+            state.AddChoice(new TrpgChoice("4", "4. 인벤토리")
             {
                 OnSelect = (s) => TrpgGameLogic.OpenInventory(s, ns => Action(ns))
             });
-            state.AddChoice(new TrpgChoice("4", "4. 돌아가기")
+            state.AddChoice(new TrpgChoice("5", "5. 돌아가기")
             {
                 OnSelect = (s) => { s.ReturnToPreviousScene(); }
             });
@@ -421,6 +539,41 @@ namespace RuleForge
             });
         }
         
+
+        /// <summary>
+        /// 필드에서 야영한다. HP/MP를 최대치의 50% 회복한다.
+        /// </summary>
+        public void Rest(TrpgGameState state)
+        {
+            var player = state.CurrentPlayer;
+            if (player == null)
+            {
+                Action(state);
+                return;
+            }
+
+            var initStats = TrpgGameConfig.PlayerDefault.InitialStats;
+            int maxHp = initStats.TryGetValue("HP", out int hp) ? hp : 100;
+            int maxMp = initStats.TryGetValue("MP", out int mp) ? mp : 50;
+
+            int currentHp = player.CommonAttributes.GetStatus("HP")?.StatusValue ?? 0;
+            int currentMp = player.CommonAttributes.GetStatus("MP")?.StatusValue ?? 0;
+
+            int restoreHp = Math.Min(maxHp / 2, maxHp - currentHp);
+            int restoreMp = Math.Min(maxMp / 2, maxMp - currentMp);
+
+            player.CommonAttributes.UpdateStatus("HP", currentHp + restoreHp);
+            player.CommonAttributes.UpdateStatus("MP", currentMp + restoreMp);
+
+            state.NarrativeText = $"===== {basicInfo.Name} - 야영 =====\n" +
+                $"모닥불을 피우고 잠시 쉬었습니다.\n" +
+                $"HP +{restoreHp}, MP +{restoreMp} 회복했습니다.";
+            state.ClearChoices();
+            state.AddChoice(new TrpgChoice("1", "1. 계속")
+            {
+                OnSelect = (s) => Action(s)
+            });
+        }
 
         public WorldUnit? SelectExplore(int selectIdx)
         {

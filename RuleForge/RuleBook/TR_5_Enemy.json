@@ -8,6 +8,7 @@
             "DEF": 3,
             "SPD": 4,
             "ExpReward": 20,
+            "GoldReward": 15,
             "RewardItemIds": [2]
         },
         {
@@ -18,6 +19,7 @@
             "DEF": 5,
             "SPD": 7,
             "ExpReward": 40,
+            "GoldReward": 30,
             "RewardItemIds": [2, 0]
         },
         {
@@ -28,6 +30,7 @@
             "DEF": 8,
             "SPD": 3,
             "ExpReward": 80,
+            "GoldReward": 60,
             "RewardItemIds": [1, 2]
         }
     ]

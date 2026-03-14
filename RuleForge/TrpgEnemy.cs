@@ -14,6 +14,9 @@ namespace RuleForge
         /// <summary>처치 시 지급하는 경험치</summary>
         public int ExpReward { get; set; } = 10;
 
+        /// <summary>처치 시 지급하는 골드</summary>
+        public int GoldReward { get; set; } = 0;
+
         public TrpgEnemy(string name, string description = "", string className = "") : base(name, description)
         {
             BattleReward = new List<TrpgItem>();

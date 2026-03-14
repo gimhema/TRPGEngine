@@ -159,6 +159,9 @@ namespace RuleForge
         /// <summary>플레이어 소지금</summary>
         public int Gold { get; set; }
 
+        /// <summary>수락한 퀘스트 목록</summary>
+        public List<Quest> AcceptedQuests { get; set; } = new();
+
         /// <summary>현재 경험치</summary>
         public int Exp { get; set; }
 

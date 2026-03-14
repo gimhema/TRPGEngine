@@ -15,6 +15,9 @@ namespace RuleForge
         /// <summary>상인 NPC의 판매 아이템 목록 (룰북에서 주입)</summary>
         public List<TrpgItem> TradeItems { get; set; } = new List<TrpgItem>();
 
+        /// <summary>퀘스트 NPC가 제공하는 퀘스트 목록 (룰북에서 주입)</summary>
+        public List<Quest> Quests { get; set; } = new List<Quest>();
+
         public void InterAction()
         {
 
