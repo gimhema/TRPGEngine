@@ -490,16 +490,23 @@ NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
 
 ## 다음 할일 (우선순위)
 
-### 🔴 높음
-1. **경험치/레벨업 시스템** - 전투 승리 시 EXP 획득 및 레벨업
-2. **장비 스탯 반영** - Equipment의 EquipmentStatuses를 전투 데미지 계산에 반영
+### 🔴 1. NPC 대화 시스템 기반 구축
+- NPC별 성격/배경 기반 대화 구조 설계 (DialogueContext 등)
+- `TrpgWorld.cs:189` 고정 문자열을 실제 대화 시스템으로 대체
+- LLM 입력용 NPC 프롬프트 템플릿 정의 (이름, 성격, 상황 등 주입)
+- 대화 기록(히스토리) 관리 구조
 
-### 🟡 중간
-3. **상점 NPC 연동** - Trader 타입 NPC가 `TrpgShop`을 통해 상점 진입 (현재 NPC 진입까지만)
-4. **필드 채집(Gathering)** - `Field.Gathering()`에서 `GatherableItems`를 실제로 지급
-5. **TR_0_Overview.md 챕터/스토리 파싱** - LLM 연동 준비용 Markdown 파싱
+### 🔴 2. 나레이터 시스템 기반 구축
+- 게임 상황(전투 결과, 탐험, 퀘스트 진행 등)을 LLM에 전달할 내러티브 컨텍스트 구조 설계
+- `TR_0_Overview.md` 파싱 - 스토리/챕터 목표를 LLM 시스템 프롬프트로 주입
+- 나레이터 프롬프트 템플릿 정의
 
-### 🔵 LLM 로컬모델 연동 시 구현
-- **NPC 대화 시스템** - LLM 기반 동적 대화 생성, NPC 성격/태도 반영
-- **퀘스트 수락/관리 UI 고도화** - NPC 대화 연동
-- **TR_0_Overview.md 스토리 → LLM 프롬프트 주입**
+### 🔴 3. LLM 연동
+- `LlamaEngine` ([LlamaInterface.cs](LlamaInterface.cs))을 NPC 대화 및 나레이터 시스템에 연결
+- `GameStartPreprocess()`에서 LLM 모델 로딩 (`Program.cs:115` TODO)
+- 스트리밍 응답을 `TrpgGameState.NarrativeText`에 반영
+
+### ⚪ 낮은 우선순위
+- 장비 스탯 전투 반영 (`Equipment.EquipmentStatuses`)
+- 멀티플레이어 클라이언트 모드 / TCP 서버-게임 상태 통합
+- 세이브 슬롯 다중 관리 / 자동 저장
