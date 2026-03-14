@@ -278,6 +278,13 @@ namespace RuleForge
             });
             index++;
 
+            // 인벤토리
+            state.AddChoice(new TrpgChoice(index.ToString(), $"{index}. 인벤토리")
+            {
+                OnSelect = (s) => TrpgGameLogic.OpenInventory(s, ns => Action(ns))
+            });
+            index++;
+
             // 돌아가기 - 이전 씬으로 복귀
             string backId = index.ToString();
             state.AddChoice(new TrpgChoice(backId, $"{index}. 마을을 떠나기")
@@ -319,7 +326,11 @@ namespace RuleForge
                     Explore(s);
                 }
             });
-            state.AddChoice(new TrpgChoice("3", "3. 돌아가기")
+            state.AddChoice(new TrpgChoice("3", "3. 인벤토리")
+            {
+                OnSelect = (s) => TrpgGameLogic.OpenInventory(s, ns => Action(ns))
+            });
+            state.AddChoice(new TrpgChoice("4", "4. 돌아가기")
             {
                 OnSelect = (s) => { s.ReturnToPreviousScene(); }
             });

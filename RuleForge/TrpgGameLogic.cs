@@ -360,6 +360,84 @@ namespace RuleForge
         }
 
         /// <summary>
+        /// 인벤토리 씬을 열어 소비 아이템을 사용할 수 있게 한다.
+        /// onReturn: 인벤토리를 닫을 때 호출할 콜백 (이전 화면 복귀용)
+        /// </summary>
+        public static void OpenInventory(TrpgGameState state, Action<TrpgGameState> onReturn)
+        {
+            state.ChangeScene(TrpgGameState.SceneType.Inventory);
+            state.NarrativeText = "인벤토리를 열었습니다.";
+            state.ClearChoices();
+
+            state.AddChoice(new TrpgChoice("1", "1. 아이템 사용")
+            {
+                OnSelect = (s) => ShowUseItemMenu(s, onReturn)
+            });
+            state.AddChoice(new TrpgChoice("2", "2. 닫기")
+            {
+                OnSelect = (s) => onReturn(s)
+            });
+        }
+
+        /// <summary>
+        /// 소비 아이템 목록을 선택지로 표시하고, 선택 시 효과를 플레이어에게 적용한다.
+        /// </summary>
+        private static void ShowUseItemMenu(TrpgGameState state, Action<TrpgGameState> onReturn)
+        {
+            if (state.CurrentPlayer == null) { onReturn(state); return; }
+
+            var consumables = state.CurrentPlayer.playerItemBag.ConsumableItems;
+
+            state.ClearChoices();
+
+            if (consumables.Count == 0)
+            {
+                state.NarrativeText = "사용할 수 있는 소비 아이템이 없습니다.";
+                state.AddChoice(new TrpgChoice("1", "1. 돌아가기")
+                {
+                    OnSelect = (s) => OpenInventory(s, onReturn)
+                });
+                return;
+            }
+
+            state.NarrativeText = "사용할 아이템을 선택하세요.";
+
+            int index = 1;
+            for (int i = 0; i < consumables.Count; i++)
+            {
+                var item = consumables[i];
+                int itemIndex = i;
+
+                var effectInfo = new System.Text.StringBuilder();
+                if (item.HealHP > 0) effectInfo.Append($" HP+{item.HealHP}");
+                if (item.RestoreMP > 0) effectInfo.Append($" MP+{item.RestoreMP}");
+
+                state.AddChoice(new TrpgChoice(index.ToString(),
+                    $"{index}. {item.ItemName} (x{item.Quantity}){effectInfo}")
+                {
+                    OnSelect = (s) =>
+                    {
+                        if (s.CurrentPlayer != null)
+                        {
+                            var logs = s.CurrentPlayer.playerItemBag.UseConsumable(itemIndex, s.CurrentPlayer);
+                            s.NarrativeText = logs.Count > 0
+                                ? string.Join("\n", logs)
+                                : "아이템을 사용했습니다.";
+                        }
+                        // 사용 후 인벤토리 화면으로 돌아가기 (목록 갱신)
+                        OpenInventory(s, onReturn);
+                    }
+                });
+                index++;
+            }
+
+            state.AddChoice(new TrpgChoice(index.ToString(), $"{index}. 돌아가기")
+            {
+                OnSelect = (s) => OpenInventory(s, onReturn)
+            });
+        }
+
+        /// <summary>
         /// 전투를 시작한다.
         /// Combat 씬으로 전환하고 TrpgBattle을 생성하여 전투 루프를 개시한다.
         /// </summary>
