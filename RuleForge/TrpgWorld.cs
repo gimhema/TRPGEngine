@@ -186,13 +186,8 @@ namespace RuleForge
                             }
                             else
                             {
-                                // TODO: NPC 대화 시스템 구현 후 연결
-                                s.NarrativeText = $"{npc.Name}: \"안녕하세요, 여행자여.\"";
-                                s.ClearChoices();
-                                s.AddChoice(new TrpgChoice("1", "1. 돌아가기")
-                                {
-                                    OnSelect = (ns) => Action(ns, parentVillage)
-                                });
+                                NpcDialogueManager.Instance.StartDialogue(
+                                    npc, s, ns => Action(ns, parentVillage));
                             }
                         }
                     });

@@ -63,6 +63,45 @@ namespace RuleForge
         }
     }
 
+    /// <summary>NPC별 독립 채팅 세션. LLamaWeights를 공유하고 LLamaContext는 NPC별로 생성.</summary>
+    public sealed class NpcChatSession : IDisposable
+    {
+        private readonly LLamaContext _context;
+        private readonly ChatSession _session;
+        private readonly InferenceParams _inferParams;
+
+        internal NpcChatSession(LLamaWeights model, ModelParams modelParams, string systemPrompt)
+        {
+            _context = model.CreateContext(modelParams);
+            var executor = new InteractiveExecutor(_context);
+
+            var history = new ChatHistory();
+            history.AddMessage(AuthorRole.System, systemPrompt);
+            _session = new ChatSession(executor, history);
+
+            _inferParams = new InferenceParams
+            {
+                MaxTokens = 256,
+                AntiPrompts = new List<string>(),
+                SamplingPipeline = new DefaultSamplingPipeline(),
+            };
+        }
+
+        public async Task<string> ChatAsync(string userMessage)
+        {
+            var parts = new List<string>();
+            await foreach (var token in _session.ChatAsync(
+                               new ChatHistory.Message(AuthorRole.User, userMessage),
+                               _inferParams))
+            {
+                parts.Add(token);
+            }
+            return string.Concat(parts).Trim();
+        }
+
+        public void Dispose() => _context.Dispose();
+    }
+
     public sealed class LlamaEngine : IDisposable
     {
         private readonly ModelDescription _model;
@@ -85,6 +124,10 @@ namespace RuleForge
 
             return string.Concat(parts);
         }
+
+        /// <summary>NPC 전용 독립 세션 생성. 모델 가중치를 공유하므로 메모리 효율적.</summary>
+        public NpcChatSession CreateNpcSession(string systemPrompt)
+            => new NpcChatSession(_model.Model, _model.ModelParams, systemPrompt);
 
         public void Dispose() => _model.Dispose();
     }

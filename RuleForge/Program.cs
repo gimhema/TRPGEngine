@@ -112,7 +112,26 @@ internal static class Program
         // 룰북 JSON 파일 파싱 및 게임 시스템 초기화 (아이템/적/스킬/월드)
         TrpgGameLogic.Instance.LoadRulebook();
 
-        // TODO: Load LLM Models . . .
+        // LLM 모델 로딩 (모델 파일이 없으면 건너뜀)
+        var modelPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Models", "model.gguf");
+        if (System.IO.File.Exists(modelPath))
+        {
+            try
+            {
+                Console.WriteLine("[LLM] 모델 로딩 중...");
+                var engine = new LlamaEngine(modelPath);
+                NpcDialogueManager.Instance.SetEngine(engine);
+                Console.WriteLine("[LLM] 모델 로딩 완료.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LLM] 모델 로딩 실패 (폴백 모드로 실행): {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("[LLM] 모델 파일 없음 - 폴백 대화 모드로 실행됩니다.");
+        }
     }
 
     public static async Task Main(string[] args)

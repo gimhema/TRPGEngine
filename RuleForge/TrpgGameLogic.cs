@@ -300,6 +300,9 @@ namespace RuleForge
                     }
                     break;
                 case TrpgGameState.SceneType.Exploration:
+                    bool dialogueActive = state.GetCustomData<bool>("npc_dialogue_active");
+                    if (dialogueActive)
+                        NpcDialogueManager.Instance.ProcessDialogueInput(input, state);
                     break;
                 case TrpgGameState.SceneType.Combat:
                     break;
