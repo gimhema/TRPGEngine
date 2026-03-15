@@ -130,7 +130,8 @@ namespace RuleForge
         public int Id { get; set; }
         public string Name { get; set; } = "";
         public string Type { get; set; } = "Normal";
-        public string Personality { get; set; } = "";
+        public string Background { get; set; } = "";
+        public List<string> Traits { get; set; } = new();
         public List<int> TradeItems { get; set; } = new();
         public List<int> QuestIds { get; set; } = new();
     }
@@ -340,7 +341,8 @@ namespace RuleForge
             {
                 var npc = new TrpgNPC();
                 npc.Name = dto.Name;
-                npc.Description = dto.Personality;
+                npc.Background = dto.Background;
+                npc.Traits = dto.Traits;
                 npc.NpcType = dto.Type;
 
                 foreach (var itemId in dto.TradeItems)
