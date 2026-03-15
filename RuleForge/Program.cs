@@ -121,6 +121,7 @@ internal static class Program
                 Console.WriteLine("[LLM] 모델 로딩 중...");
                 var engine = new LlamaEngine(modelPath);
                 NpcDialogueManager.Instance.SetEngine(engine);
+                NarratorManager.Instance.SetEngine(engine);
                 Console.WriteLine("[LLM] 모델 로딩 완료.");
             }
             catch (Exception ex)

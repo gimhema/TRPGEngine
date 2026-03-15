@@ -317,7 +317,13 @@ namespace RuleForge
             // 아이템 보상 지급
             GiveEnemyReward();
 
-            state.NarrativeText = BuildBattleNarrative();
+            var victoryNarration = NarratorManager.Instance.Narrate(new NarrativeContext
+            {
+                EventType = NarrativeEventType.BattleVictory,
+                PlayerName = Player.Name,
+                TargetName = CurrentEnemy.Name
+            });
+            state.NarrativeText = BuildBattleNarrative() + $"\n\n{victoryNarration}";
             state.ClearChoices();
             state.AddChoice(new TrpgChoice("1", "1. 계속")
             {
@@ -333,7 +339,13 @@ namespace RuleForge
             Phase = BattlePhase.Defeat;
             AddLog($"\n{Player.Name}은(는) 쓰러졌다...");
 
-            state.NarrativeText = BuildBattleNarrative();
+            var defeatNarration = NarratorManager.Instance.Narrate(new NarrativeContext
+            {
+                EventType = NarrativeEventType.BattleDefeat,
+                PlayerName = Player.Name,
+                TargetName = CurrentEnemy.Name
+            });
+            state.NarrativeText = BuildBattleNarrative() + $"\n\n{defeatNarration}";
             state.ClearChoices();
             state.AddChoice(new TrpgChoice("1", "1. 계속")
             {

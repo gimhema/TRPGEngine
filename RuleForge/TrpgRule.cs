@@ -480,9 +480,127 @@ namespace RuleForge
         }
 
         // --------------------------------------------------------
+        // 개요(스토리) 파싱
+        // --------------------------------------------------------
+        /// <summary>TR_0_Overview.md 파싱 후 NarratorManager에 주입.</summary>
+        public void ParseOverview()
+        {
+            var path = Path.Combine(RuleBookDir, "TR_0_Overview.md");
+            if (!File.Exists(path))
+            {
+                Console.WriteLine("[RulebookParser] 경고: TR_0_Overview.md 파일을 찾을 수 없습니다.");
+                return;
+            }
+
+            var lines = File.ReadAllLines(path);
+            string mainStory = ExtractCodeBlock(lines, "# MainStory");
+            var chapters = ParseChapterOverviews(lines);
+
+            NarratorManager.Instance.LoadStory(mainStory, chapters);
+            Console.WriteLine($"[RulebookParser] 개요 로드 완료: 챕터 {chapters.Count}개");
+        }
+
+        /// <summary>지정한 섹션 헤더 이후에 나오는 첫 ``` 코드 블록 내용을 반환.</summary>
+        private static string ExtractCodeBlock(string[] lines, string sectionHeader)
+        {
+            bool inSection = false;
+            bool inBlock = false;
+            var sb = new System.Text.StringBuilder();
+
+            foreach (var line in lines)
+            {
+                if (!inSection)
+                {
+                    if (line.TrimStart('#').Trim() == sectionHeader.TrimStart('#').Trim())
+                        inSection = true;
+                    continue;
+                }
+
+                // 다음 최상위 섹션 만나면 중단
+                if (inSection && !inBlock && line.StartsWith("# ") &&
+                    !line.TrimStart('#').Trim().Equals(sectionHeader.TrimStart('#').Trim()))
+                    break;
+
+                if (line.TrimStart() == "```")
+                {
+                    if (inBlock) break;   // 코드 블록 끝
+                    inBlock = true;
+                    continue;
+                }
+
+                if (inBlock)
+                    sb.AppendLine(line);
+            }
+
+            return sb.ToString().Trim();
+        }
+
+        /// <summary>#### N / #### FINAL 챕터 섹션에서 ChapterOverview 목록 파싱.</summary>
+        private static List<ChapterOverview> ParseChapterOverviews(string[] lines)
+        {
+            var result = new List<ChapterOverview>();
+            ChapterOverview? current = null;
+            bool inStoryBlock = false;
+            var storySb = new System.Text.StringBuilder();
+
+            void SaveCurrent()
+            {
+                if (current == null) return;
+                current.Story = storySb.ToString().Trim();
+                if (!string.IsNullOrWhiteSpace(current.Story) || !string.IsNullOrWhiteSpace(current.Goal))
+                    result.Add(current);
+                storySb.Clear();
+            }
+
+            foreach (var line in lines)
+            {
+                // #### FINAL 또는 #### N 감지
+                if (line.StartsWith("#### "))
+                {
+                    SaveCurrent();
+                    inStoryBlock = false;
+                    var token = line.Substring(5).Trim();
+                    current = new ChapterOverview();
+                    if (token.Equals("FINAL", StringComparison.OrdinalIgnoreCase))
+                    {
+                        current.IsFinal = true;
+                        current.ChapterNumber = 999;
+                    }
+                    else if (int.TryParse(token, out int num))
+                    {
+                        current.ChapterNumber = num;
+                    }
+                    continue;
+                }
+
+                if (current == null) continue;
+
+                // 목표: 파싱
+                if (line.TrimStart().StartsWith("목표:"))
+                {
+                    current.Goal = line.Substring(line.IndexOf("목표:") + 3).Trim();
+                    continue;
+                }
+
+                // 스토리 코드 블록
+                if (line.TrimStart() == "```")
+                {
+                    inStoryBlock = !inStoryBlock;
+                    continue;
+                }
+
+                if (inStoryBlock)
+                    storySb.AppendLine(line);
+            }
+
+            SaveCurrent();
+            return result;
+        }
+
+        // --------------------------------------------------------
         // 전체 파싱 진입점
         // --------------------------------------------------------
-        /// <summary>모든 룰북 파일 파싱. 순서: Items → Enemies → Skills → Quests → World(+NPCs)</summary>
+        /// <summary>모든 룰북 파일 파싱. 순서: Items → Enemies → Skills → Quests → World(+NPCs) → Overview</summary>
         public List<Quest> ParseAll(WorldManager worldMgr)
         {
             Console.WriteLine("[RulebookParser] 룰북 파싱 시작...");
@@ -491,6 +609,7 @@ namespace RuleForge
             ParseSkills();
             var quests = ParseQuests();  // NPC 퀘스트 링크 전에 레지스트리 등록
             ParseWorld(worldMgr);        // 내부에서 ParseNPCs() 호출 (퀘스트 레지스트리 참조)
+            ParseOverview();             // 스토리/챕터 개요 → NarratorManager 주입
             Console.WriteLine("[RulebookParser] 룰북 파싱 완료.");
             return quests;
         }

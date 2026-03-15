@@ -224,6 +224,14 @@ namespace RuleForge
             {
                 state.ChangeScene(TrpgGameState.SceneType.Exploration);
                 startLocation.Action(state);
+
+                // 게임 시작 나레이션을 NarrativeText 앞에 추가
+                var intro = NarratorManager.Instance.Narrate(new NarrativeContext
+                {
+                    EventType = NarrativeEventType.GameStart,
+                    PlayerName = playerName
+                });
+                state.NarrativeText = intro + "\n\n" + state.NarrativeText;
             }
             else
             {
