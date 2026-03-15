@@ -88,16 +88,32 @@ dotnet add package LLamaSharp.Backend.Cpu
 ### LLM 통합
 
 **LlamaEngine** ([LlamaInterface.cs:66](LlamaInterface.cs#L66))은 로컬 LLM 추론을 위해 LLamaSharp를 래핑합니다:
-- 디스크에서 GGUF 모델 파일 로드
+- 디스크에서 GGUF 모델 파일 로드 (`bin/Models/model.gguf`)
 - 컨텍스트 크기: 4096 토큰
 - GPU 레이어 수: 0 (기본적으로 CPU 전용)
 - 한국어 응답으로 구성됨
-- 비동기 열거를 통한 스트리밍 토큰 생성 사용
+- `CreateNpcSession(systemPrompt)`: NPC/나레이터용 독립 세션 생성 (LLamaWeights 공유, LLamaContext는 세션별 독립)
 
 **ModelDescription** ([LlamaInterface.cs:12](LlamaInterface.cs#L12))은 모델 생명주기를 관리합니다:
 - 모델 로딩, 컨텍스트 생성, 실행자 설정 처리
 - 시스템 프롬프트와 함께 채팅 히스토리 유지
 - 역순으로 리소스를 올바르게 해제
+
+**NpcChatSession** ([LlamaInterface.cs](LlamaInterface.cs)) - NPC/나레이터별 독립 LLM 세션:
+- `LLamaWeights`는 공유, `LLamaContext`와 `ChatSession`은 독립 생성
+- `ChatAsync(userMessage)`: 비동기 응답 생성
+
+**NpcDialogueManager** ([NpcDialogueManager.cs](NpcDialogueManager.cs)) - NPC 대화 싱글톤:
+- `SetEngine(engine)`: LLM 엔진 주입 (없으면 폴백 모드)
+- `StartDialogue(npc, state, returnCallback)`: 대화 화면 진입, 첫 인사 생성
+- `ProcessDialogueInput(input, state)`: 플레이어 자유 입력 처리 → LLM/폴백 응답 → 화면 갱신
+- `CustomData["npc_dialogue_active"]` 플래그로 게임 루프와 연동
+
+**NarratorManager** ([NarratorManager.cs](NarratorManager.cs)) - 게임 상황 내러티브 싱글톤:
+- `SetEngine(engine)`: LLM 엔진 주입
+- `LoadStory(mainStory, chapters)`: TR_0_Overview.md 파싱 결과 주입
+- `Narrate(NarrativeContext)`: 이벤트 상황 묘사 텍스트 반환 (LLM/폴백)
+- 연결된 이벤트: 게임 시작(`StartGame`), 전투 승리/패배(`TrpgBattle`)
 
 ### 게임 콘텐츠 구조
 
@@ -258,7 +274,6 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 **미완성 부분**:
 - Chapter/Quest와의 연동 미구현
-- NPC 대화 시스템 미구현 (Establishment에서 NPC 선택까지만 가능)
 - Field.Gathering() 구현 (플레이어 액션 시스템 필요)
 
 ### 스킬 시스템 ✅
@@ -340,7 +355,7 @@ TrpgGameState/TrpgChoice 기반 상점 시스템이 구현되었습니다:
 - `TR_1_2_Dungeon.json` - **JSON 형식** - 던전 목록 (DungeonName, EncounterEnemys)
 - `TR_2_Skill.json` - **JSON 형식** - 스킬 정의 (SkillName, SkillTargetType, SkillEffectType, Stat)
 - `TR_3_Item.json` - **JSON 형식** - 아이템 정의 (Id, Name, Type, Stat/ItemEffect)
-- `TR_4_NPC.json` - **JSON 형식** - NPC 정의 (Name, Type, Personality, TradeItems/QuestIds)
+- `TR_4_NPC.json` - **JSON 형식** - NPC 정의 (Name, Type, Background, Traits[], TradeItems/QuestIds)
 - `TR_5_Enemy.json` - **JSON 형식** - 적 정의 (EnemyName, Stat, RewardItemIds)
 - `TR_6_Quest.json` - **JSON 형식** (**신규**) - 퀘스트 정의 (QuestId, QuestTitle, QuestDescription, QuestRewardItemIds)
 
@@ -368,26 +383,25 @@ TrpgGameState/TrpgChoice 기반 상점 시스템이 구현되었습니다:
 
 ### 스토리 및 상호작용 시스템
 
-#### 3. NPC 대화 시스템 🟡 (LLM 통합과 함께 구현 예정)
-**필요 작업**:
-- NPC 클래스 확장 (TrpgActor 기반)
-- 대화 트리 구조 (DialogueNode, 선택지 분기)
-- LLM 통합 (동적 대화 생성)
-- NPC별 성격/태도 시스템
+#### 3. NPC 대화 시스템 ✅
+**위치**: [NpcDialogueManager.cs](NpcDialogueManager.cs), [TrpgNPC.cs](TrpgNPC.cs)
+
+LLM 기반 자유 대화 시스템 구현 완료:
+- `TrpgNPC.Background` / `Traits[]`: 배경과 성격 키워드 (LLM 시스템 프롬프트 주입)
+- `TrpgNPC.DialogueHistory`: 대화 히스토리 보존 (재진입 시 이어서 대화)
+- `TrpgNPC.BuildSystemPrompt(player)`: NPC 컨텍스트 → 시스템 프롬프트 빌드
+- 플레이어 자유 텍스트 입력 → `ProcessInput` → `NpcDialogueManager.ProcessDialogueInput()`
+- LLM 없으면 성격 기반 폴백 응답 제공
+- `0` 입력으로 대화 종료, 시설 화면으로 복귀
+
+**향후 확장**:
 - 호감도/평판 시스템
+- 대화 선택지 분기 (DialogueNode)
 
-**참고**: [TrpgInterface.cs:217-220](TrpgInterface.cs#L217-L220) HandleSocialInput "Talk" 케이스
+#### 4. 퀘스트 수락/관리 시스템 ✅
+**위치**: [TrpgWorld.cs](TrpgWorld.cs) `ShowQuestMenu()`
 
-#### 4. 퀘스트 수락/관리 시스템 🟡 (LLM 통합과 함께 구현 예정)
-**필요 작업**:
-- NPC와 퀘스트 연결 (NPC가 제공하는 퀘스트 목록)
-- 퀘스트 수락 조건 확인 (레벨, 선행 퀘스트, 아이템 보유 등)
-- 퀘스트 진행 상황 추적 UI
-- 퀘스트 보상 시스템
-
-**참고**:
-- Quest 클래스는 [TrpgGameLogic.cs:59](TrpgGameLogic.cs#L59)에 이미 존재
-- [TrpgInterface.cs:229-233](TrpgInterface.cs#L229-L233) "Accept Quest" 케이스
+Quest NPC를 통한 퀘스트 수락/완료 보고 UI 구현 완료 (2026-03-14).
 
 ### 게임 시스템
 
@@ -424,41 +438,22 @@ TrpgGameState/TrpgChoice 기반 상점 시스템이 구현되었습니다:
 
 1. **Agent.cs** ([Agent.cs:9](Agent.cs#L9)) - 빈 클래스, 용도 불명확
 2. **OllamaAPI.cs** - 대체 LLM API 통합 (현재 사용되지 않음)
-3. **TrpgRule** ([TrpgRule.cs:22](TrpgRule.cs#L22)) - 룰 시스템 골격만 존재, Markdown 룰북 파서 구현 필요
-4. **TrpgNPC** ([TrpgNPC.cs](TrpgNPC.cs)) - TrpgActor 확장, InterAction/Trade/Communicate 메서드 비어있음
-5. **TrpgGameAction** ([TrpgGameAction.cs](TrpgGameAction.cs)) - 기본 액션 구조만 존재 (Name, Description, Target, Cost)
-6. **GameStartPreprocess** ([Program.cs:110](Program.cs#L110)) - LLM 모델 로딩 및 룰북 파싱/설정 미구현
-7. 멀티플레이어 클라이언트 모드 구현 누락
-8. TCP 서버와 게임 상태 통합 미완료
-9. WorldManager.LoadWorldInfoByRuleBook() - 룰북 기반 월드 자동 로딩 미구현
-10. `RuleForge.csproj`에 RuleBook/ 리소스 파일 빌드 포함 설정 누락
+3. **TrpgGameAction** ([TrpgGameAction.cs](TrpgGameAction.cs)) - 기본 액션 구조만 존재 (Name, Description, Target, Cost)
+4. 멀티플레이어 클라이언트 모드 구현 누락
+5. TCP 서버와 게임 상태 통합 미완료
+6. LLM 스트리밍 응답 실시간 표시 미구현 (현재 전체 응답 후 일괄 표시)
 
 ## 개발 우선순위 가이드
 
 ### ✅ 구현 완료
-전투 시스템, 스킬 시스템, 월드/던전 시스템, 아이템/인벤토리 시스템, 상점 시스템, 게임 설정 시스템 (데이터 기반 전환)
+전투 시스템, 스킬 시스템, 월드/던전 시스템, 아이템/인벤토리 시스템, 상점 시스템, 게임 설정 시스템, 룰북 파서, NPC 대화 시스템, 나레이터 시스템, LLM 연동 (모델 로딩 + 세션 관리)
 
-### ✅ 룰북 파일 스키마 정의 완료
-JSON 스키마 구조 정의 완료 (TR_1_0~TR_6). 실제 데이터 입력 및 파서 구현 필요.
-
-### 🔴 높음 (핵심 시스템)
-- 룰북 JSON 파서(`RulebookParser`) 구현 - 스키마 정의됨, 파싱 로직 미구현
-- 룰북 파일에 실제 게임 데이터 입력 (현재 전부 빈 값)
-- `RuleForge.csproj`에 RuleBook 파일 빌드 포함 설정 누락
-
-### 🟡 중간 (컨텐츠 확장)
-NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
-
-### 🟢 낮음 (편의 기능)
-저장/로드, 휴식, 설정 - 사용자 경험 개선
-
-## 기타 미완성 영역 (업데이트)
-
-- `TR_6_Quest.json` 신규 추가됨 - 퀘스트 파싱 및 Chapter 연동 미구현
-- `TR_1_0/1/2_World*.json` - 월드를 3개 파일로 분리 (World/Village/Dungeon), 파서 미구현
-- `RulebookParser.ParseRulebook()` - 현재 Markdown 파서 시그니처만 있음, JSON 방식으로 재작성 필요
-- `WorldManager.LoadWorldInfoByRuleBook()` - 빈 메서드, 구현 필요
-- `GameStartPreprocess()` - LLM 로딩 및 룰북 파싱 모두 미구현
+### ⚪ 낮음 (선택적 개선)
+- 장비 스탯 전투 반영 (`Equipment.EquipmentStatuses`)
+- LLM 스트리밍 응답 실시간 표시 (토큰 단위 출력, 게임 루프 변경 필요)
+- 멀티플레이어 클라이언트 모드 / TCP 서버-게임 상태 통합
+- 세이브 슬롯 다중 관리 / 자동 저장
+- NPC 호감도/평판 시스템
 
 ## 완료된 작업 이력
 
@@ -472,6 +467,21 @@ NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
 ```
 룰북 파싱 → PlayerSetup (이름 입력) → 시작의 평원(Field) → 주변 탐색 → [시작 마을 / 초원 동굴]
 ```
+
+### ✅ 2026-03-15: NPC 대화 시스템 + 나레이터 시스템 + LLM 연동
+1. **TR_4_NPC.json 스키마 개선** - `Personality` → `Background` (배경) + `Traits[]` (성격 키워드 배열)
+2. **NPC 대화 시스템** (`NpcDialogueManager.cs`, `TrpgNPC.cs`)
+   - `TrpgNPC.Background` / `Traits[]` / `DialogueHistory` / `BuildSystemPrompt()` 추가
+   - `NpcChatSession`: NPC별 독립 LLM 세션 (LLamaWeights 공유)
+   - `NpcDialogueManager`: 대화 진입/처리/폴백, `CustomData` 플래그로 자유 텍스트 입력 연동
+3. **나레이터 시스템** (`NarratorManager.cs`)
+   - `NarrativeContext` / `NarrativeEventType` / `ChapterOverview` 구조체
+   - `NarratorManager`: 게임 시작·전투 승패 이벤트 묘사 생성
+   - `RulebookParser.ParseOverview()`: TR_0_Overview.md 파싱 → NarratorManager 주입
+4. **LLM 연동** (`Program.cs`, `LlamaInterface.cs`)
+   - `GameStartPreprocess()`에서 `bin/Models/model.gguf` 로딩, 없으면 폴백 모드
+   - `LlamaEngine.CreateNpcSession()` 팩토리 메서드 추가
+   - `NpcDialogueManager` + `NarratorManager` 동일 엔진 공유, 독립 세션
 
 ### ✅ 2026-03-14: 게임플레이 시스템 확장
 1. **소비 아이템 실제 효과** - `UseConsumable(index, player)`: HP/MP 실제 회복, 로그 반환
@@ -490,23 +500,9 @@ NPC 대화, 퀘스트 관리 - LLM 로컬 모델 통합과 함께 구현 예정
 
 ## 다음 할일 (우선순위)
 
-### 🔴 1. NPC 대화 시스템 기반 구축
-- NPC별 성격/배경 기반 대화 구조 설계 (DialogueContext 등)
-- `TrpgWorld.cs:189` 고정 문자열을 실제 대화 시스템으로 대체
-- LLM 입력용 NPC 프롬프트 템플릿 정의 (이름, 성격, 상황 등 주입)
-- 대화 기록(히스토리) 관리 구조
-
-### 🔴 2. 나레이터 시스템 기반 구축
-- 게임 상황(전투 결과, 탐험, 퀘스트 진행 등)을 LLM에 전달할 내러티브 컨텍스트 구조 설계
-- `TR_0_Overview.md` 파싱 - 스토리/챕터 목표를 LLM 시스템 프롬프트로 주입
-- 나레이터 프롬프트 템플릿 정의
-
-### 🔴 3. LLM 연동
-- `LlamaEngine` ([LlamaInterface.cs](LlamaInterface.cs))을 NPC 대화 및 나레이터 시스템에 연결
-- `GameStartPreprocess()`에서 LLM 모델 로딩 (`Program.cs:115` TODO)
-- 스트리밍 응답을 `TrpgGameState.NarrativeText`에 반영
-
 ### ⚪ 낮은 우선순위
 - 장비 스탯 전투 반영 (`Equipment.EquipmentStatuses`)
+- LLM 스트리밍 응답 실시간 표시 (게임 루프 비동기 개선 필요)
 - 멀티플레이어 클라이언트 모드 / TCP 서버-게임 상태 통합
 - 세이브 슬롯 다중 관리 / 자동 저장
+- NPC 호감도/평판 시스템
