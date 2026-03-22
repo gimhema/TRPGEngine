@@ -24,11 +24,12 @@ dotnet clean
 ```
 
 ### 의존성
-프로젝트는 LLM 통합을 위해 LLamaSharp를 사용합니다. 패키지 추가가 필요한 경우:
+프로젝트는 LLM 통합을 위해 LLamaSharp를 사용합니다. **반드시 두 패키지를 동일 버전으로 맞춰야 합니다.**
 ```bash
-dotnet add package LLamaSharp
-dotnet add package LLamaSharp.Backend.Cpu
+dotnet add package LLamaSharp --version 0.26.0
+dotnet add package LLamaSharp.Backend.Cpu --version 0.26.0
 ```
+> CPU 전용 타겟 (저사양 머신 대응). GPU 백엔드 패키지는 사용하지 않음.
 
 ## 아키텍처 개요
 
@@ -87,17 +88,19 @@ dotnet add package LLamaSharp.Backend.Cpu
 
 ### LLM 통합
 
-**LlamaEngine** ([LlamaInterface.cs:66](LlamaInterface.cs#L66))은 로컬 LLM 추론을 위해 LLamaSharp를 래핑합니다:
-- 디스크에서 GGUF 모델 파일 로드 (`bin/Models/model.gguf`)
-- 컨텍스트 크기: 4096 토큰
-- GPU 레이어 수: 0 (기본적으로 CPU 전용)
-- 한국어 응답으로 구성됨
-- `CreateNpcSession(systemPrompt)`: NPC/나레이터용 독립 세션 생성 (LLamaWeights 공유, LLamaContext는 세션별 독립)
+**GameSetting / LlamaSetting** ([LlamaSetting.cs](LlamaSetting.cs), [GameSetting/GameSetting.ini](GameSetting/GameSetting.ini)):
+- INI 파일로 모델 파일명을 외부 설정으로 제어
+- 모델은 `GameSetting/model/` 디렉토리에 위치, INI `[Model] path=` 에는 파일명만 기입
+- `GameSetting.LoadINI()` → `ModelPath` 조합 → `Program.GameStartPreprocess()`에서 `LlamaEngine` 생성
 
-**ModelDescription** ([LlamaInterface.cs:12](LlamaInterface.cs#L12))은 모델 생명주기를 관리합니다:
-- 모델 로딩, 컨텍스트 생성, 실행자 설정 처리
-- 시스템 프롬프트와 함께 채팅 히스토리 유지
-- 역순으로 리소스를 올바르게 해제
+**LlamaEngine** ([LlamaInterface.cs:86](LlamaInterface.cs#L86))은 로컬 LLM 추론을 위해 LLamaSharp를 래핑합니다:
+- 컨텍스트 크기: 4096 토큰, GPU 레이어 수: 0 (CPU 전용)
+- `CreateNpcSession(systemPrompt)`: NPC/나레이터용 독립 세션 생성 (LLamaWeights 공유, LLamaContext는 세션별 독립)
+- `IDisposable` 구현 — `Main()` 종료 시 NPC 세션 → NarratorManager → LlamaEngine 순으로 해제
+
+**ModelDescription** ([LlamaInterface.cs:15](LlamaInterface.cs#L15))은 모델 가중치만 보유합니다:
+- `LLamaWeights` + `ModelParams` 만 관리 (LLamaContext는 세션별로 개별 생성)
+- `IDisposable` 구현 — `Model.Dispose()` 호출
 
 **NpcChatSession** ([LlamaInterface.cs](LlamaInterface.cs)) - NPC/나레이터별 독립 LLM 세션:
 - `LLamaWeights`는 공유, `LLamaContext`와 `ChatSession`은 독립 생성
@@ -494,7 +497,7 @@ Quest NPC를 통한 퀘스트 수락/완료 보고 UI 구현 완료 (2026-03-14)
    - 필드/마을에서 "저장하기" 선택지 추가
    - `InitializeGame()`에 "이어하기" 선택지 추가 (세이브 파일 존재 시)
 
-### ✅ 2026-03-22: 장비 스탯 전투 반영 + 세이브 슬롯
+### ✅ 2026-03-22: 장비 스탯 전투 반영 + 세이브 슬롯 + LLM 연동 안정화
 1. **장비 스탯 전투 반영**
    - `Equipment.Stat` (`Dictionary<string, int>`) 추가, `GetStatBonus()` 구현
    - `RulebookParser.ParseItems()`에서 JSON `Stat` → `equipment.Stat` 주입
@@ -507,6 +510,14 @@ Quest NPC를 통한 퀘스트 수락/완료 보고 UI 구현 완료 (2026-03-14)
    - 타이틀 "이어하기" → 슬롯 선택 화면
    - Village/Field 저장 버튼 → 슬롯 선택 화면
    - 세이브에 장착 장비 이름 포함, 로드 시 자동 재장착
+3. **LLM 연동 안정화**
+   - `ModelDescription` 경량화: `LLamaContext`/`ChatSession`/`Executor` 제거, 가중치+파라미터만 보유
+   - `NarratorManager` `IDisposable` 구현 (`_session?.Dispose()`)
+   - `WorldManager.DisposeAllNpcSessions()` 추가 — 게임 종료 시 모든 NPC 세션 선해제
+   - `Program.Main()` 종료 순서 확정: NPC세션 → NarratorManager → LlamaEngine
+   - LLamaSharp 버전 통일 (`0.25.0` + `0.26.0` 불일치 → 둘 다 `0.26.0`)
+   - `GameSetting/GameSetting.ini` 기반 모델 경로 외부 설정 (`LlamaSetting.cs`)
+   - 모델 경로 고정: `GameSetting/model/{파일명}` (INI에는 파일명만 기입)
 
 ## 다음 할일 (우선순위)
 
