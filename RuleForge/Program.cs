@@ -113,9 +113,12 @@ internal static class Program
         // 룰북 JSON 파일 파싱 및 게임 시스템 초기화 (아이템/적/스킬/월드)
         TrpgGameLogic.Instance.LoadRulebook();
 
-        // LLM 모델 로딩 (모델 파일이 없으면 건너뜀)
-        var modelPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Models", "model.gguf");
-        if (System.IO.File.Exists(modelPath))
+        // GameSetting.ini에서 모델 경로 로드
+        var setting = new GameSetting();
+        setting.LoadINI();
+        var modelPath = setting.ModelPath;
+
+        if (!string.IsNullOrWhiteSpace(modelPath) && System.IO.File.Exists(modelPath))
         {
             try
             {
@@ -132,7 +135,8 @@ internal static class Program
         }
         else
         {
-            Console.WriteLine("[LLM] 모델 파일 없음 - 폴백 대화 모드로 실행됩니다.");
+            Console.WriteLine("[LLM] 모델 파일 없음 또는 경로 미설정 - 폴백 대화 모드로 실행됩니다.");
+            Console.WriteLine($"      경로 설정: GameSetting/GameSetting.ini  [Model] path=...");
         }
     }
 
