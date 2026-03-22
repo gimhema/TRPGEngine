@@ -31,28 +31,21 @@ namespace RuleForge
 
     public class Equipment : TrpgItem
     {
-        enum EquipmentType
-        {
-            Default,
-            Weapon,
-            Armor,
-            Accessory
-        }
+        /// <summary>
+        /// 장비 스탯 보너스. 예: {"ATK": 5, "DEF": 2}
+        /// </summary>
+        public Dictionary<string, int> Stat { get; set; } = new Dictionary<string, int>();
 
-        private Dictionary<string, TrpgStatus> EquipmentStatuses = new Dictionary<string, TrpgStatus>();
         public Equipment(string name, string description = "", int price = 0) : base(name, description, price)
         {
+        }
 
-        }           
-        
-
-        public TrpgStatus? GetStatusByName(string statusName)
+        /// <summary>
+        /// 해당 스탯의 보너스 값을 반환한다. 없으면 0.
+        /// </summary>
+        public int GetStatBonus(string statName)
         {
-            if (EquipmentStatuses.ContainsKey(statusName))
-            {
-                return EquipmentStatuses[statusName];
-            }
-            return null;
+            return Stat.TryGetValue(statName, out int value) ? value : 0;
         }
     }
 

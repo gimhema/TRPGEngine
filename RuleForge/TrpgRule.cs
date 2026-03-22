@@ -285,6 +285,13 @@ namespace RuleForge
                     _            => new TrpgItem(dto.Name, dto.Description, dto.Price)
                 };
 
+                // Equipment: 스탯 보너스 주입
+                if (item is Equipment equipment && dto.Stat != null)
+                {
+                    if (dto.Stat.ATK != 0) equipment.Stat["ATK"] = dto.Stat.ATK;
+                    if (dto.Stat.DEF != 0) equipment.Stat["DEF"] = dto.Stat.DEF;
+                }
+
                 // Consumable: HP/MP 효과 데이터 주입
                 if (item is Consumable consumable && dto.Effect != null)
                 {

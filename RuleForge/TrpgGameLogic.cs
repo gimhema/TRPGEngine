@@ -264,26 +264,105 @@ namespace RuleForge
                 OnSelect = (s) => StartGame("모험가", s)
             });
 
-            // 세이브 파일이 있을 때만 불러오기 표시
-            if (GameSaveManager.HasSaveData())
+            // 세이브 슬롯이 하나라도 있으면 불러오기 표시
+            if (GameSaveManager.HasAnySaveData())
             {
                 state.AddChoice(new TrpgChoice("3", "3. 이어하기")
                 {
+                    OnSelect = (s) => ShowLoadSlotMenu(s, () => InitializeGame(s))
+                });
+            }
+        }
+
+        /// <summary>
+        /// 세이브 슬롯 선택 후 저장한다. onReturn: 저장 완료/취소 후 돌아갈 동작.
+        /// </summary>
+        public static void ShowSaveSlotMenu(TrpgGameState state, Action<TrpgGameState> onReturn)
+        {
+            var sb = new System.Text.StringBuilder("===== 저장 슬롯 선택 =====\n");
+            state.ClearChoices();
+
+            for (int i = 1; i <= GameSaveManager.SlotCount; i++)
+            {
+                int slot = i;
+                var info = GameSaveManager.GetSlotInfo(slot);
+                string label = $"{slot}. 슬롯 {slot}: {info.DisplayText()}";
+
+                sb.AppendLine(label);
+                state.AddChoice(new TrpgChoice(slot.ToString(), label)
+                {
                     OnSelect = (s) =>
                     {
-                        bool ok = GameSaveManager.Load(s, WorldMgr);
-                        if (!ok)
+                        bool ok = GameSaveManager.Save(s, TrpgGameLogic.Instance.WorldManager, slot);
+                        s.NarrativeText = ok ? $"슬롯 {slot}에 저장했습니다." : "저장에 실패했습니다.";
+                        s.ClearChoices();
+                        s.AddChoice(new TrpgChoice("1", "1. 계속")
                         {
-                            s.NarrativeText = "세이브 파일을 불러오지 못했습니다.";
-                            s.ClearChoices();
-                            s.AddChoice(new TrpgChoice("1", "1. 처음으로")
-                            {
-                                OnSelect = (ns) => InitializeGame(ns)
-                            });
-                        }
+                            OnSelect = (ns) => onReturn(ns)
+                        });
                     }
                 });
             }
+
+            int backIdx = GameSaveManager.SlotCount + 1;
+            state.AddChoice(new TrpgChoice(backIdx.ToString(), $"{backIdx}. 취소")
+            {
+                OnSelect = (s) => onReturn(s)
+            });
+
+            state.NarrativeText = sb.ToString();
+        }
+
+        /// <summary>
+        /// 세이브 슬롯 선택 후 불러온다. onFail: 로드 실패 시 호출.
+        /// </summary>
+        public void ShowLoadSlotMenu(TrpgGameState state, Action onFail)
+        {
+            var sb = new System.Text.StringBuilder("===== 불러오기 슬롯 선택 =====\n");
+            state.ClearChoices();
+
+            for (int i = 1; i <= GameSaveManager.SlotCount; i++)
+            {
+                int slot = i;
+                var info = GameSaveManager.GetSlotInfo(slot);
+                string label = $"{slot}. 슬롯 {slot}: {info.DisplayText()}";
+                sb.AppendLine(label);
+
+                if (!info.HasData)
+                {
+                    state.AddChoice(new TrpgChoice(slot.ToString(), label + " (비어 있음)")
+                    {
+                        OnSelect = (s) => { /* 아무것도 안 함 */ }
+                    });
+                }
+                else
+                {
+                    state.AddChoice(new TrpgChoice(slot.ToString(), label)
+                    {
+                        OnSelect = (s) =>
+                        {
+                            bool ok = GameSaveManager.Load(s, WorldMgr, slot);
+                            if (!ok)
+                            {
+                                s.NarrativeText = "세이브 파일을 불러오지 못했습니다.";
+                                s.ClearChoices();
+                                s.AddChoice(new TrpgChoice("1", "1. 처음으로")
+                                {
+                                    OnSelect = (ns) => onFail()
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+            int backIdx = GameSaveManager.SlotCount + 1;
+            state.AddChoice(new TrpgChoice(backIdx.ToString(), $"{backIdx}. 취소")
+            {
+                OnSelect = (s) => onFail()
+            });
+
+            state.NarrativeText = sb.ToString();
         }
 
         public void DoAction(string actionName)
@@ -406,16 +485,111 @@ namespace RuleForge
         public static void OpenInventory(TrpgGameState state, Action<TrpgGameState> onReturn)
         {
             state.ChangeScene(TrpgGameState.SceneType.Inventory);
-            state.NarrativeText = "인벤토리를 열었습니다.";
+
+            // 현재 장착 장비 요약 표시
+            string equipSummary = "";
+            if (state.CurrentPlayer != null)
+            {
+                var equipped = state.CurrentPlayer.playerEquipments.EquippedItems;
+                if (equipped.Count > 0)
+                {
+                    var names = string.Join(", ", equipped.Keys);
+                    int atkBonus = state.CurrentPlayer.playerEquipments.GetTotalBonus("ATK");
+                    int defBonus = state.CurrentPlayer.playerEquipments.GetTotalBonus("DEF");
+                    equipSummary = $"\n\n[장착 중: {names}] (ATK+{atkBonus} DEF+{defBonus})";
+                }
+            }
+            state.NarrativeText = "인벤토리를 열었습니다." + equipSummary;
             state.ClearChoices();
 
             state.AddChoice(new TrpgChoice("1", "1. 아이템 사용")
             {
                 OnSelect = (s) => ShowUseItemMenu(s, onReturn)
             });
-            state.AddChoice(new TrpgChoice("2", "2. 닫기")
+            state.AddChoice(new TrpgChoice("2", "2. 장비 관리")
+            {
+                OnSelect = (s) => ShowEquipManageMenu(s, onReturn)
+            });
+            state.AddChoice(new TrpgChoice("3", "3. 닫기")
             {
                 OnSelect = (s) => onReturn(s)
+            });
+        }
+
+        /// <summary>
+        /// 가방의 장비 목록을 표시하고 장착/해제를 선택한다.
+        /// </summary>
+        private static void ShowEquipManageMenu(TrpgGameState state, Action<TrpgGameState> onReturn)
+        {
+            if (state.CurrentPlayer == null) { onReturn(state); return; }
+
+            var equipments = state.CurrentPlayer.playerItemBag.EquipmentItems;
+            state.ClearChoices();
+
+            if (equipments.Count == 0)
+            {
+                state.NarrativeText = "보유한 장비가 없습니다.";
+                state.AddChoice(new TrpgChoice("1", "1. 돌아가기")
+                {
+                    OnSelect = (s) => OpenInventory(s, onReturn)
+                });
+                return;
+            }
+
+            var sb = new System.Text.StringBuilder("===== 장비 목록 =====\n");
+            int index = 1;
+            foreach (var eq in equipments)
+            {
+                bool equipped = state.CurrentPlayer.playerEquipments.IsEquipped(eq.ItemName);
+                var statInfo = new System.Text.StringBuilder();
+                foreach (var kv in eq.Stat)
+                    if (kv.Value != 0) statInfo.Append($" {kv.Key}+{kv.Value}");
+                sb.AppendLine($"{index}. {eq.ItemName}{statInfo}{(equipped ? " [장착됨]" : "")}");
+                index++;
+            }
+            state.NarrativeText = sb.ToString();
+
+            index = 1;
+            for (int i = 0; i < equipments.Count; i++)
+            {
+                int itemIndex = i;
+                var eq = equipments[i];
+                bool equipped = state.CurrentPlayer.playerEquipments.IsEquipped(eq.ItemName);
+                string label = equipped
+                    ? $"{index}. {eq.ItemName} 해제"
+                    : $"{index}. {eq.ItemName} 장착";
+
+                state.AddChoice(new TrpgChoice(index.ToString(), label)
+                {
+                    OnSelect = (s) =>
+                    {
+                        if (s.CurrentPlayer == null) return;
+                        if (s.CurrentPlayer.playerEquipments.IsEquipped(eq.ItemName))
+                        {
+                            s.CurrentPlayer.playerEquipments.Unequip(eq.ItemName);
+                            s.NarrativeText = $"{eq.ItemName}을(를) 해제했다.";
+                        }
+                        else
+                        {
+                            s.CurrentPlayer.playerEquipments.Equip(eq);
+                            var statInfo = new System.Text.StringBuilder();
+                            foreach (var kv in eq.Stat)
+                                if (kv.Value != 0) statInfo.Append($" {kv.Key}+{kv.Value}");
+                            s.NarrativeText = $"{eq.ItemName}을(를) 장착했다!{statInfo}";
+                        }
+                        s.ClearChoices();
+                        s.AddChoice(new TrpgChoice("1", "1. 계속")
+                        {
+                            OnSelect = (ns) => ShowEquipManageMenu(ns, onReturn)
+                        });
+                    }
+                });
+                index++;
+            }
+
+            state.AddChoice(new TrpgChoice(index.ToString(), $"{index}. 돌아가기")
+            {
+                OnSelect = (s) => OpenInventory(s, onReturn)
             });
         }
 

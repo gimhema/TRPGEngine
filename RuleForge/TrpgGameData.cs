@@ -37,6 +37,8 @@ namespace RuleForge
         public List<ItemSaveData> EquipmentItems { get; set; } = new();
         public List<ItemSaveData> KeyItems { get; set; } = new();
         public List<string> SkillNames { get; set; } = new();
+        /// <summary>장착 중인 장비 이름 목록</summary>
+        public List<string> EquippedItemNames { get; set; } = new();
     }
 
     public class GameSaveData
@@ -50,27 +52,90 @@ namespace RuleForge
     }
 
     // ============================================================
+    // 세이브 슬롯 요약 정보
+    // ============================================================
+
+    public class SaveSlotInfo
+    {
+        public int Slot { get; set; }
+        public bool HasData { get; set; }
+        public string SaveTime { get; set; } = "";
+        public string PlayerName { get; set; } = "";
+        public int Level { get; set; }
+        public string LocationId { get; set; } = "";
+
+        public string DisplayText()
+        {
+            if (!HasData) return "(빈 슬롯)";
+            return $"{PlayerName} Lv.{Level}  [{SaveTime}]";
+        }
+    }
+
+    // ============================================================
     // 저장/로드 관리자
     // ============================================================
 
     public static class GameSaveManager
     {
-        private const string SaveFilePath = "save.json";
+        public const int SlotCount = 3;
 
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true
         };
 
-        /// <summary>세이브 파일 존재 여부</summary>
-        public static bool HasSaveData() => File.Exists(SaveFilePath);
+        private static string SlotPath(int slot) => $"save_{slot}.json";
+
+        // ─── 슬롯 정보 조회 ───
+
+        public static SaveSlotInfo GetSlotInfo(int slot)
+        {
+            var info = new SaveSlotInfo { Slot = slot };
+            string path = SlotPath(slot);
+
+            if (!File.Exists(path))
+            {
+                info.HasData = false;
+                return info;
+            }
+
+            try
+            {
+                var json = File.ReadAllText(path);
+                var data = JsonSerializer.Deserialize<GameSaveData>(json, JsonOptions);
+                if (data == null) { info.HasData = false; return info; }
+
+                info.HasData = true;
+                info.SaveTime = data.SaveTime;
+                info.LocationId = data.CurrentLocationId;
+                if (data.Player != null)
+                {
+                    info.PlayerName = data.Player.Name;
+                    info.Level = data.Player.Level;
+                }
+            }
+            catch
+            {
+                info.HasData = false;
+            }
+
+            return info;
+        }
+
+        /// <summary>저장된 슬롯이 하나라도 있으면 true</summary>
+        public static bool HasAnySaveData()
+        {
+            for (int i = 1; i <= SlotCount; i++)
+                if (File.Exists(SlotPath(i))) return true;
+            return false;
+        }
 
         // ─── 저장 ───
 
         /// <summary>
-        /// 현재 게임 상태를 save.json에 저장한다.
+        /// 지정 슬롯에 현재 게임 상태를 저장한다.
         /// </summary>
-        public static bool Save(TrpgGameState state, WorldManager worldMgr)
+        public static bool Save(TrpgGameState state, WorldManager worldMgr, int slot)
         {
             try
             {
@@ -108,7 +173,7 @@ namespace RuleForge
                     }
                 }
 
-                File.WriteAllText(SaveFilePath, JsonSerializer.Serialize(saveData, JsonOptions));
+                File.WriteAllText(SlotPath(slot), JsonSerializer.Serialize(saveData, JsonOptions));
                 return true;
             }
             catch (Exception ex)
@@ -121,16 +186,17 @@ namespace RuleForge
         // ─── 불러오기 ───
 
         /// <summary>
-        /// save.json을 읽어 게임 상태를 복원한다.
-        /// 룰북은 이미 파싱(TrpgGameLogic.LoadRulebook())된 상태여야 한다.
+        /// 지정 슬롯을 읽어 게임 상태를 복원한다.
+        /// 룰북은 이미 파싱된 상태여야 한다.
         /// </summary>
-        public static bool Load(TrpgGameState state, WorldManager worldMgr)
+        public static bool Load(TrpgGameState state, WorldManager worldMgr, int slot)
         {
             try
             {
-                if (!HasSaveData()) return false;
+                string path = SlotPath(slot);
+                if (!File.Exists(path)) return false;
 
-                var json = File.ReadAllText(SaveFilePath);
+                var json = File.ReadAllText(path);
                 var saveData = JsonSerializer.Deserialize<GameSaveData>(json, JsonOptions);
                 if (saveData == null) return false;
 
@@ -180,7 +246,6 @@ namespace RuleForge
                     }
                 }
 
-                // 위치를 찾지 못하면 탐험 씬만 전환
                 state.ChangeScene(TrpgGameState.SceneType.Exploration);
                 return true;
             }
@@ -237,6 +302,9 @@ namespace RuleForge
 
             data.SkillNames = player.PlayerSkills.Select(s => s.SkillName).ToList();
 
+            // 장착 중인 장비 이름 저장
+            data.EquippedItemNames = player.playerEquipments.EquippedItems.Keys.ToList();
+
             return data;
         }
 
@@ -266,13 +334,21 @@ namespace RuleForge
                 });
             }
 
-            // 장비
+            // 장비 (가방에 추가 + 장착 복원)
+            var equippedSet = new HashSet<string>(data.EquippedItemNames);
             foreach (var itemData in data.EquipmentItems)
             {
                 var template = TrpgItemRegistry.Get(itemData.ItemId) as Equipment;
                 if (template == null) continue;
-                player.playerItemBag.AcquireEquipment(
-                    new Equipment(template.ItemName, template.ItemDescription, template.Price));
+
+                var eq = new Equipment(template.ItemName, template.ItemDescription, template.Price);
+                foreach (var kv in template.Stat)
+                    eq.Stat[kv.Key] = kv.Value;
+
+                player.playerItemBag.AcquireEquipment(eq);
+
+                if (equippedSet.Contains(eq.ItemName))
+                    player.playerEquipments.Equip(eq);
             }
 
             // 키 아이템

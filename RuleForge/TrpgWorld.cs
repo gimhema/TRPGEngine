@@ -397,16 +397,7 @@ namespace RuleForge
             // 저장하기
             state.AddChoice(new TrpgChoice(index.ToString(), $"{index}. 저장하기")
             {
-                OnSelect = (s) =>
-                {
-                    bool ok = GameSaveManager.Save(s, TrpgGameLogic.Instance.WorldManager);
-                    s.NarrativeText = ok ? "게임이 저장되었습니다." : "저장에 실패했습니다.";
-                    s.ClearChoices();
-                    s.AddChoice(new TrpgChoice("1", "1. 계속")
-                    {
-                        OnSelect = (ns) => Action(ns)
-                    });
-                }
+                OnSelect = (s) => TrpgGameLogic.ShowSaveSlotMenu(s, ns => Action(ns))
             });
             index++;
 
@@ -461,16 +452,7 @@ namespace RuleForge
             });
             state.AddChoice(new TrpgChoice("5", "5. 저장하기")
             {
-                OnSelect = (s) =>
-                {
-                    bool ok = GameSaveManager.Save(s, TrpgGameLogic.Instance.WorldManager);
-                    s.NarrativeText = ok ? "게임이 저장되었습니다." : "저장에 실패했습니다.";
-                    s.ClearChoices();
-                    s.AddChoice(new TrpgChoice("1", "1. 계속")
-                    {
-                        OnSelect = (ns) => Action(ns)
-                    });
-                }
+                OnSelect = (s) => TrpgGameLogic.ShowSaveSlotMenu(s, ns => Action(ns))
             });
             state.AddChoice(new TrpgChoice("6", "6. 돌아가기")
             {

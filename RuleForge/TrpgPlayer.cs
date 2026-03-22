@@ -19,26 +19,30 @@ namespace RuleForge
 // 장비창
     public class PlayerEquipments
     {
-        Dictionary<string, Equipment> EquippedItems = new Dictionary<string, Equipment>();
-        public PlayerEquipments()
-        {
-
-        }
+        public Dictionary<string, Equipment> EquippedItems { get; } = new Dictionary<string, Equipment>();
 
         public void Equip(Equipment item)
         {
             if (!EquippedItems.ContainsKey(item.ItemName))
-            {
                 EquippedItems.Add(item.ItemName, item);
-            }
         }
 
         public void Unequip(string itemName)
         {
-            if (EquippedItems.ContainsKey(itemName))
-            {
-                EquippedItems.Remove(itemName);
-            }
+            EquippedItems.Remove(itemName);
+        }
+
+        public bool IsEquipped(string itemName) => EquippedItems.ContainsKey(itemName);
+
+        /// <summary>
+        /// 장착된 모든 장비에서 특정 스탯의 합산 보너스를 반환한다.
+        /// </summary>
+        public int GetTotalBonus(string statName)
+        {
+            int total = 0;
+            foreach (var eq in EquippedItems.Values)
+                total += eq.GetStatBonus(statName);
+            return total;
         }
     }
 

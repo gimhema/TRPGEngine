@@ -446,8 +446,11 @@ namespace RuleForge
 
         private static int GetStatValue(TrpgActor actor, string statName)
         {
-            var status = actor.CommonAttributes.GetStatus(statName);
-            return status?.StatusValue ?? 0;
+            int base_ = actor.CommonAttributes.GetStatus(statName)?.StatusValue ?? 0;
+            // 플레이어인 경우 장착 장비 보너스 합산
+            if (actor is TrpgPlayer player)
+                base_ += player.playerEquipments.GetTotalBonus(statName);
+            return base_;
         }
 
         private static void ApplyDamage(TrpgActor actor, int damage)
