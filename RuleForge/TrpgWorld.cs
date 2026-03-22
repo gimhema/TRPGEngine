@@ -29,7 +29,24 @@ namespace RuleForge
             return null;
         }
 
-
+        /// <summary>
+        /// 모든 Village의 NPC ChatSession을 해제한다.
+        /// LLamaWeights 해제 전에 반드시 호출해야 한다.
+        /// </summary>
+        public void DisposeAllNpcSessions()
+        {
+            foreach (var world in Worlds.Values)
+            {
+                if (world.units == null) continue;
+                foreach (var unit in world.units.Values)
+                {
+                    if (unit is not Village village) continue;
+                    foreach (var establishment in village.establishments.Values)
+                        foreach (var npc in establishment.npcs.Values)
+                            npc.Dispose();
+                }
+            }
+        }
 
     }
 

@@ -161,7 +161,8 @@ internal static class Program
 
         await GameStart(args);
 
-        // NPC 세션은 LlamaEngine.Dispose() 전에 먼저 정리
+        // LLamaWeights 해제 전, Context를 가진 세션들을 먼저 정리
+        TrpgGameLogic.Instance.WorldManager.DisposeAllNpcSessions();
         NarratorManager.Instance.Dispose();
         _llamaEngine?.Dispose();
     }
