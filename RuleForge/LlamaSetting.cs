@@ -42,7 +42,7 @@ namespace RuleForge
                 var value = line[(sep + 1)..].Trim();
 
                 if (currentSection == "Model" && key == "path" && !string.IsNullOrWhiteSpace(value))
-                    ModelPath = Path.Combine(AppContext.BaseDirectory, "model", value);
+                    ModelPath = Path.Combine(AppContext.BaseDirectory, "GameSetting", "model", value);
             }
         }
     }
