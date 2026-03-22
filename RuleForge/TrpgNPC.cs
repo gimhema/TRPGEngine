@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RuleForge
 {
-    public class TrpgNPC : TrpgActor
+    public class TrpgNPC : TrpgActor, IDisposable
     {
         /// <summary>NPC 타입: Normal, Trader, Quest 등</summary>
         public string NpcType { get; set; } = "Normal";
@@ -26,6 +26,8 @@ namespace RuleForge
 
         /// <summary>LLM 채팅 세션 (NpcDialogueManager에서 초기화)</summary>
         public NpcChatSession? ChatSession { get; set; }
+
+        public void Dispose() => ChatSession?.Dispose();
 
         /// <summary>NPC 컨텍스트를 LLM 시스템 프롬프트로 빌드</summary>
         public string BuildSystemPrompt(TrpgPlayer? player)

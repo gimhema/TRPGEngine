@@ -1,5 +1,4 @@
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -9,16 +8,15 @@ using LLama.Sampling;
 
 namespace RuleForge
 {
+    /// <summary>
+    /// 모델 가중치와 파라미터만 보유한다.
+    /// LLamaContext는 세션별로 개별 생성하므로 여기서는 만들지 않는다.
+    /// </summary>
     public sealed class ModelDescription : IDisposable
     {
         public string ModelPath { get; }
         public ModelParams ModelParams { get; }
         public LLamaWeights Model { get; }
-        public LLamaContext ModelContext { get; }
-        public InteractiveExecutor ModelExecutor { get; }
-        public ChatHistory ChatHistory { get; }
-        public ChatSession ChatSession { get; }
-        public InferenceParams InferenceParams { get; }
 
         public ModelDescription(string modelPath)
         {
@@ -38,27 +36,10 @@ namespace RuleForge
             };
 
             Model = LLamaWeights.LoadFromFile(ModelParams);
-            ModelContext = Model.CreateContext(ModelParams);
-            ModelExecutor = new InteractiveExecutor(ModelContext);
-
-            ChatHistory = new ChatHistory();
-            ChatHistory.AddMessage(AuthorRole.System,
-                "You are a helpful assistant. Answer in Korean. Keep responses concise.");
-
-            ChatSession = new ChatSession(ModelExecutor, ChatHistory);
-
-            InferenceParams = new InferenceParams
-            {
-                MaxTokens = 256,
-                AntiPrompts = new List<string>(),
-                SamplingPipeline = new DefaultSamplingPipeline(),
-            };
         }
 
         public void Dispose()
         {
-            // 생성한 역순으로 정리
-            ModelContext?.Dispose();
             Model?.Dispose();
         }
     }
@@ -111,21 +92,7 @@ namespace RuleForge
             _model = new ModelDescription(modelPath);
         }
 
-        public async Task<string> ChatOnceAsync(string userText)
-        {
-            var parts = new List<string>();
-
-            await foreach (var token in _model.ChatSession.ChatAsync(
-                               new ChatHistory.Message(AuthorRole.User, userText),
-                               _model.InferenceParams))
-            {
-                parts.Add(token);
-            }
-
-            return string.Concat(parts);
-        }
-
-        /// <summary>NPC 전용 독립 세션 생성. 모델 가중치를 공유하므로 메모리 효율적.</summary>
+        /// <summary>NPC/나레이터 전용 독립 세션 생성. 모델 가중치를 공유하므로 메모리 효율적.</summary>
         public NpcChatSession CreateNpcSession(string systemPrompt)
             => new NpcChatSession(_model.Model, _model.ModelParams, systemPrompt);
 

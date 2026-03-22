@@ -17,6 +17,7 @@ internal static class Program
     }
 
     public static GameMode CurrentGameMode = GameMode.DEFAULT;
+    private static LlamaEngine? _llamaEngine;
 
     public static void SelectGameMode(GameMode mode)
     {
@@ -119,9 +120,9 @@ internal static class Program
             try
             {
                 Console.WriteLine("[LLM] 모델 로딩 중...");
-                var engine = new LlamaEngine(modelPath);
-                NpcDialogueManager.Instance.SetEngine(engine);
-                NarratorManager.Instance.SetEngine(engine);
+                _llamaEngine = new LlamaEngine(modelPath);
+                NpcDialogueManager.Instance.SetEngine(_llamaEngine);
+                NarratorManager.Instance.SetEngine(_llamaEngine);
                 Console.WriteLine("[LLM] 모델 로딩 완료.");
             }
             catch (Exception ex)
@@ -159,5 +160,9 @@ internal static class Program
         }
 
         await GameStart(args);
+
+        // NPC 세션은 LlamaEngine.Dispose() 전에 먼저 정리
+        NarratorManager.Instance.Dispose();
+        _llamaEngine?.Dispose();
     }
 }

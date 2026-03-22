@@ -48,7 +48,7 @@ namespace RuleForge
     /// 게임 상황을 LLM 나레이터에 전달해 내러티브 묘사를 생성한다.
     /// LLM이 없으면 상황에 맞는 폴백 텍스트를 반환한다.
     /// </summary>
-    public class NarratorManager
+    public class NarratorManager : IDisposable
     {
         private static NarratorManager? _instance;
         public static NarratorManager Instance => _instance ??= new NarratorManager();
@@ -59,6 +59,8 @@ namespace RuleForge
 
         private NarratorManager() { }
 
+        public void Dispose() => _session?.Dispose();
+
         // ----------------------------------------------------------------
         // 초기화
         // ----------------------------------------------------------------
@@ -66,6 +68,7 @@ namespace RuleForge
         /// <summary>LLM 엔진 주입 및 나레이터 세션 생성</summary>
         public void SetEngine(LlamaEngine engine)
         {
+            _session?.Dispose();
             _session = engine.CreateNpcSession(BuildNarratorSystemPrompt());
         }
 
