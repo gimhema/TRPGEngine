@@ -34,11 +34,13 @@ namespace RuleForge
         public void StartDialogue(TrpgNPC npc, TrpgGameState state,
             Action<TrpgGameState> returnCallback)
         {
-            // LLM 세션 초기화 (NPC당 1회)
+            // LLM 세션 초기화 (NPC당 1회) — 컨텍스트 할당 시 스피너 표시
             if (_engine != null && npc.ChatSession == null)
             {
                 var systemPrompt = npc.BuildSystemPrompt(state.CurrentPlayer);
-                npc.ChatSession = _engine.CreateNpcSession(systemPrompt);
+                npc.ChatSession = ConsoleSpinner.Run(
+                    $"{npc.Name} 와(과)의 대화 준비 중...",
+                    () => _engine.CreateNpcSession(systemPrompt));
             }
 
             // 첫 대화 시 NPC 인사 생성
