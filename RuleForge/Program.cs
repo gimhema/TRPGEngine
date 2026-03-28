@@ -3,7 +3,6 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using LLama.Native;
 
 namespace RuleForge;
 
@@ -114,8 +113,8 @@ internal static class Program
         // 룰북 JSON 파일 파싱 및 게임 시스템 초기화 (아이템/적/스킬/월드)
         TrpgGameLogic.Instance.LoadRulebook();
 
-        // LLamaSharp 네이티브 로그 억제 (모델 로드 전 설정 필수)
-        NativeLibraryConfig.All.WithLogCallback((NativeLogConfig.LLamaLogCallback?)null);
+        // llama.cpp 네이티브 stderr 출력 억제 (managed 콜백을 우회하는 직접 fd 출력 차단)
+        NativeStderrSuppressor.Suppress();
 
         // GameSetting.ini에서 모델 경로 로드
         var setting = new GameSetting();
@@ -137,11 +136,13 @@ internal static class Program
             }
             catch (Exception ex)
             {
+                NativeStderrSuppressor.Restore();
                 Console.WriteLine($"LLM 모델 로딩 실패, 폴백 모드로 실행합니다. ({ex.Message})");
             }
         }
         else
         {
+            NativeStderrSuppressor.Restore();
             Console.WriteLine("LLM 모델 없음 — 폴백 대화 모드로 실행합니다.");
         }
     }

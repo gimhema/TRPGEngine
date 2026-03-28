@@ -1,6 +1,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using LLama;
@@ -9,6 +10,43 @@ using LLama.Sampling;
 
 namespace RuleForge
 {
+    /// <summary>
+    /// llama.cpp 네이티브 라이브러리가 fd 2(stderr)에 직접 쓰는 출력을 억제한다.
+    /// managed 로그 콜백을 우회하는 네이티브 출력도 차단된다.
+    /// </summary>
+    internal static class NativeStderrSuppressor
+    {
+        [DllImport("libc", EntryPoint = "dup")]
+        private static extern int Dup(int fd);
+
+        [DllImport("libc", EntryPoint = "dup2")]
+        private static extern int Dup2(int oldfd, int newfd);
+
+        [DllImport("libc", EntryPoint = "open")]
+        private static extern int Open(string path, int flags);
+
+        private const int O_WRONLY = 1;
+        private const int STDERR_FD = 2;
+        private static int _savedFd = -1;
+
+        /// <summary>stderr(fd 2)를 /dev/null로 리다이렉트한다. 복원 전까지 네이티브 출력이 차단된다.</summary>
+        public static void Suppress()
+        {
+            if (!OperatingSystem.IsLinux() || _savedFd >= 0) return;
+            _savedFd = Dup(STDERR_FD);
+            int devNull = Open("/dev/null", O_WRONLY);
+            if (devNull >= 0) Dup2(devNull, STDERR_FD);
+        }
+
+        /// <summary>stderr를 원래 fd로 복원한다.</summary>
+        public static void Restore()
+        {
+            if (!OperatingSystem.IsLinux() || _savedFd < 0) return;
+            Dup2(_savedFd, STDERR_FD);
+            _savedFd = -1;
+        }
+    }
+
     /// <summary>LLM 작업 중 콘솔 스피너를 표시하는 유틸리티.</summary>
     public static class ConsoleSpinner
     {
