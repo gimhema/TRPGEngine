@@ -1,10 +1,58 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using LLama;
 using LLama.Common;
 using LLama.Sampling;
+
+namespace RuleForge
+{
+    /// <summary>LLM 작업 중 콘솔 스피너를 표시하는 유틸리티.</summary>
+    public static class ConsoleSpinner
+    {
+        private static readonly string[] Frames = ["|", "/", "-", "\\"];
+
+        /// <summary>
+        /// message를 표시하면서 work를 실행한다. 완료 후 해당 줄을 지운다.
+        /// </summary>
+        public static T Run<T>(string message, Func<T> work)
+        {
+            Console.Write($"\r{message} ");
+            T result = default!;
+            Exception? error = null;
+
+            var thread = new Thread(() =>
+            {
+                try { result = work(); }
+                catch (Exception ex) { error = ex; }
+            }) { IsBackground = true };
+            thread.Start();
+
+            int frame = 0;
+            while (thread.IsAlive)
+            {
+                Console.Write(Frames[frame++ % Frames.Length]);
+                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                Thread.Sleep(100);
+            }
+            thread.Join();
+
+            // 스피너 줄 지우기
+            Console.Write($"\r{new string(' ', message.Length + 4)}\r");
+
+            if (error != null)
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error).Throw();
+
+            return result;
+        }
+
+        /// <summary>반환값 없는 버전.</summary>
+        public static void Run(string message, Action work)
+            => Run<int>(message, () => { work(); return 0; });
+    }
+}
 
 namespace RuleForge
 {

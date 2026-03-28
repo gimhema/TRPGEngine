@@ -96,11 +96,12 @@ namespace RuleForge
             {
                 try
                 {
-                    return _session.ChatAsync(prompt).GetAwaiter().GetResult();
+                    return ConsoleSpinner.Run("나레이터가 상황을 묘사하는 중...",
+                        () => _session.ChatAsync(prompt).GetAwaiter().GetResult());
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[NarratorManager] LLM 오류: {ex.Message}");
+                    Console.WriteLine($"LLM 오류: {ex.Message}");
                 }
             }
 

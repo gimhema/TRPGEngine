@@ -121,11 +121,12 @@ namespace RuleForge
             {
                 try
                 {
-                    return npc.ChatSession.ChatAsync(playerMessage).GetAwaiter().GetResult();
+                    return ConsoleSpinner.Run($"{npc.Name} 이(가) 생각하는 중...",
+                        () => npc.ChatSession.ChatAsync(playerMessage).GetAwaiter().GetResult());
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[NpcDialogueManager] LLM 오류: {ex.Message}");
+                    Console.WriteLine($"LLM 오류: {ex.Message}");
                 }
             }
             return GetFallbackResponse(npc, playerMessage);

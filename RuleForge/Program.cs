@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using LLama.Native;
 
 namespace RuleForge;
 
@@ -113,6 +114,9 @@ internal static class Program
         // 룰북 JSON 파일 파싱 및 게임 시스템 초기화 (아이템/적/스킬/월드)
         TrpgGameLogic.Instance.LoadRulebook();
 
+        // LLamaSharp 네이티브 로그 억제 (모델 로드 전 설정 필수)
+        NativeLibraryConfig.All.WithLogCallback((NativeLogConfig.LLamaLogCallback?)null);
+
         // GameSetting.ini에서 모델 경로 로드
         var setting = new GameSetting();
         setting.LoadINI();
@@ -122,21 +126,23 @@ internal static class Program
         {
             try
             {
-                Console.WriteLine("[LLM] 모델 로딩 중...");
-                _llamaEngine = new LlamaEngine(modelPath);
-                NpcDialogueManager.Instance.SetEngine(_llamaEngine);
-                NarratorManager.Instance.SetEngine(_llamaEngine);
-                Console.WriteLine("[LLM] 모델 로딩 완료.");
+                _llamaEngine = ConsoleSpinner.Run("LLM 모델 로딩 중...", () =>
+                {
+                    var engine = new LlamaEngine(modelPath);
+                    NpcDialogueManager.Instance.SetEngine(engine);
+                    NarratorManager.Instance.SetEngine(engine);
+                    return engine;
+                });
+                Console.WriteLine("LLM 모델 로딩 완료.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[LLM] 모델 로딩 실패 (폴백 모드로 실행): {ex.Message}");
+                Console.WriteLine($"LLM 모델 로딩 실패, 폴백 모드로 실행합니다. ({ex.Message})");
             }
         }
         else
         {
-            Console.WriteLine("[LLM] 모델 파일 없음 또는 경로 미설정 - 폴백 대화 모드로 실행됩니다.");
-            Console.WriteLine($"      경로 설정: GameSetting/GameSetting.ini  [Model] path=...");
+            Console.WriteLine("LLM 모델 없음 — 폴백 대화 모드로 실행합니다.");
         }
     }
 
