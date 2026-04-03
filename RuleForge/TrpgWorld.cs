@@ -195,7 +195,7 @@ namespace RuleForge
                             {
                                 var shop = new TrpgShop(npc.Name);
                                 shop.Merchandise.AddRange(npc.TradeItems);
-                                shop.Enter(s);
+                                shop.Enter(s, ns => Action(ns, parentVillage));
                             }
                             else if (npc.NpcType == "Quest" && npc.Quests.Count > 0)
                             {

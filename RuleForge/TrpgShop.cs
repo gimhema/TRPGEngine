@@ -22,6 +22,11 @@ namespace RuleForge
         /// </summary>
         public double SellRatio { get; set; } = 0.5;
 
+        /// <summary>
+        /// 상점 종료 시 호출할 콜백 (이전 화면 재구성용)
+        /// </summary>
+        private Action<TrpgGameState>? _onReturn;
+
         public TrpgShop(string name)
         {
             ShopName = name;
@@ -41,8 +46,11 @@ namespace RuleForge
         /// <summary>
         /// 상점에 진입한다. Shop 씬으로 전환하고 메인 메뉴를 표시한다.
         /// </summary>
-        public void Enter(TrpgGameState state)
+        /// <param name="onReturn">상점 종료 시 호출할 콜백 (이전 화면 재구성용)</param>
+        public void Enter(TrpgGameState state, Action<TrpgGameState>? onReturn = null)
         {
+            _onReturn = onReturn;
+
             if (state.CurrentScene != TrpgGameState.SceneType.Shop)
             {
                 state.ChangeScene(TrpgGameState.SceneType.Shop);
@@ -72,7 +80,11 @@ namespace RuleForge
             });
             state.AddChoice(new TrpgChoice("3", "3. 상점 나가기")
             {
-                OnSelect = (s) => s.ReturnToPreviousScene()
+                OnSelect = (s) =>
+                {
+                    s.ReturnToPreviousScene();
+                    _onReturn?.Invoke(s);
+                }
             });
         }
 
